@@ -1,8 +1,17 @@
 package com.horowitz.commons;
 
+import java.awt.AWTException;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Iterator;
 
 import javax.imageio.IIOException;
@@ -14,6 +23,44 @@ import javax.imageio.stream.ImageOutputStream;
 public class MyImageIO {
 
   private MyImageIO() {
+
+  }
+
+  public static void writeImage(BufferedImage image, String filename) {
+
+    try {
+      int ind = filename.lastIndexOf("/");
+      if (ind > 0) {
+        String path = filename.substring(0, ind);
+        File f = new File(path);
+        f.mkdirs();
+      }
+      File file = new File(filename);
+      write(image, filename.substring(filename.length() - 3).toUpperCase(), file);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void writeScreen(String filename) {
+    final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    writeArea(new Rectangle(new Point(0, 0), screenSize), filename);
+  }
+
+  public static void writeArea(Rectangle rect, String filename) {
+    try {
+      writeImage(new Robot().createScreenCapture(rect), filename);
+    } catch (AWTException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void writeAreaTS(Rectangle rect, String filenamePrefix) {
+    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd  HH-mm-ss-SSS");
+    String date = sdf.format(Calendar.getInstance().getTime());
+    String filename2 = filenamePrefix + " " + date + ".png";
+
+    writeArea(rect, filename2);
   }
 
   private static ImageWriter getWriter(RenderedImage im, String formatName) {

@@ -110,6 +110,10 @@ public class ImageData implements Serializable {
     return null;
   }
 
+  public Pixel findImageExclude(BufferedImage screen) {
+    return _comparator.findImage(_image, screen, _colorToBypass);
+  }
+  
   private void writeImage(BufferedImage image, int n) {
     if (false)
       try {
@@ -125,7 +129,11 @@ public class ImageData implements Serializable {
 
     try {
       BufferedImage screen = new Robot().createScreenCapture(area);
-      p = findImage(screen);
+      if (_colorToBypass != null)
+        p = findImageExclude(screen);
+      else
+        p = findImage(screen);
+      
       if (p != null) {
         p.x = p.x + area.x;
         p.y = p.y + area.y;
