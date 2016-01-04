@@ -10,6 +10,7 @@ import Catalano.Imaging.FastBitmap;
 import Catalano.Imaging.Filters.BinaryOpening;
 import Catalano.Imaging.Filters.Difference;
 import Catalano.Imaging.Filters.Erosion;
+import Catalano.Imaging.Filters.ExtractBiggestBlob;
 import Catalano.Imaging.Filters.Threshold;
 import Catalano.Imaging.Tools.Blob;
 import Catalano.Imaging.Tools.BlobDetection;
@@ -119,17 +120,12 @@ public class MotionDetector {
     difference.applyInPlace(fb2);
     threshold.applyInPlace(fb2);
     opening.applyInPlace(fb2);
-    BlobDetection bd = new BlobDetection(BlobDetection.Algorithm.EightWay);
-    bd.setMinArea(30*30);
-    bd.setMaxArea(60*60);
-    return bd.ProcessImage(fb2);
-//    if (bd.getBlobs().size() > 0) {
-//      for (Blob blob : bd.getBlobs()) {
-//        fb2.saveAsPNG("BLOB_" + blob.getCenter().y + "_" + blob.getCenter().x + "_" + System.currentTimeMillis());
-//      }
-//    }
     
-    //return bd.getBlobs();
+    BlobDetection bd = new BlobDetection(BlobDetection.Algorithm.EightWay);
+    bd.setMinArea(50*50);
+    bd.setMaxArea(60*60);
+    
+    return bd.ProcessImage(fb2);
   }
 
 }

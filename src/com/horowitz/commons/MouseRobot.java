@@ -5,6 +5,8 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 public class MouseRobot {
 	private int _clickDelay;
@@ -12,6 +14,7 @@ public class MouseRobot {
 	private int _delayBetweenActions;
 	private Point _position;
 	private Point _lastMousePos;
+	private PropertyChangeSupport _support;
 
 	private Robot getInstance() {
 		try {
@@ -29,6 +32,7 @@ public class MouseRobot {
 		_clickDelay = clickDelay;
 		_doubleClickDelay = doubleClickDelay;
 		_delayBetweenActions = delayBetweenActions;
+		_support = new PropertyChangeSupport(this);
 	}
 
 	public MouseRobot() throws AWTException {
@@ -221,7 +225,24 @@ public class MouseRobot {
 	public void delay(int ms, boolean checkUserMovement) throws RobotInterruptedException {
 		if (checkUserMovement)
 			saveCurrentPosition();
-		getInstance().delay(ms);
+		if (ms > 10000) {
+			int turns = ms / 10000;
+			int remainder = ms - (turns * 10000);
+			for (int i = 1; i <= turns; i++) {
+				getInstance().delay(10000);
+				_support.firePropertyChange("DELAY", 0, i * 10000);
+				if (checkUserMovement)
+					checkUserMovement();
+      }
+			if (remainder > 0) {
+				getInstance().delay(remainder);
+				_support.firePropertyChange("DELAY", 0, ms);
+			}
+			
+		} else {
+		  getInstance().delay(ms);
+		  //_support.firePropertyChange("DELAY", 0, ms);
+		}
 		if (checkUserMovement)
 			checkUserMovement();
 	}
@@ -297,4 +318,20 @@ public class MouseRobot {
 	public Point getPosition() {
 		return MouseInfo.getPointerInfo().getLocation();
 	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+	  _support.addPropertyChangeListener(listener);
+  }
+
+	public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+	  _support.addPropertyChangeListener(propertyName, listener);
+  }
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+	  _support.removePropertyChangeListener(listener);
+  }
+
+	public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+	  _support.removePropertyChangeListener(propertyName, listener);
+  }
 }

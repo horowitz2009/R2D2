@@ -95,12 +95,12 @@ public class OCRC {
       BufferedImage image = ImageIO.read(new File("ocr/" + prefix + 1 + ".bmp"));
       FastBitmap fb1 = new FastBitmap(image);
 
-      fb1.toGrayscale();
+      //fb1.toGrayscale();
       for (int i = 2; i <= numImages; i++) {
 
         image = ImageIO.read(new File("ocr/" + prefix + i + ".bmp"));
         FastBitmap fb = new FastBitmap(image);
-        fb.toGrayscale();
+        //fb.toGrayscale();
 
         Or xor = new Or(fb);
         xor.applyInPlace(fb1);
@@ -117,8 +117,11 @@ public class OCRC {
   }
 
   public static void main(String[] args) {
-    processResources("Diggy", 5);
-    doDigit("output", 5);
+  	doDigit("gate10", 7);
+  	
+  	
+//    processResources("Diggy", 5);
+//    doDigit("output", 5);
     
 //    processResources("clickable", 12);
 //
@@ -134,6 +137,7 @@ public class OCRC {
     // doDigit(7, 4);
     // doDigit(8, 4);
     // doDigit(9, 3);
+  	if (false) {
     String test = "decor3";
     try {
       BufferedImage image = ImageIO.read(new File("ocr/" + test + ".bmp"));
@@ -150,7 +154,7 @@ public class OCRC {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-
+  	}
 
   }
 
