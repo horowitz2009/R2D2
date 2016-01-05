@@ -43,9 +43,9 @@ public class GameLocator {
     int wm = 20, hm = 20;
 
     List<Rectangle> rects = new ArrayList<Rectangle>(5);
-    rects.add(new Rectangle(0, 170, 50, 50));
+    rects.add(new Rectangle(0, 80, 106, 256));
     rects.add(new Rectangle(0, 170, 50, 180));
-    rects.add(new Rectangle(0, 0, 300, 350));
+    rects.add(new Rectangle(0, 0, 300, 550));
     int hturns = 1 + (screenSize.width - 600) / (w - wm);
     int vturns = 1 + (screenSize.height - 500) / (h - hm);
     int x = 0, y = 0;
