@@ -2,7 +2,7 @@
 <project default="create_jar" name="Create Jar for Horowitz Commons">
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
 
-	<property name="versionNumber" value="1.0" />
+	<property name="versionNumber" value="1.1" />
 
 	<property name="jarname" value="horowitz-commons-${versionNumber}.jar" description="" />
 
@@ -10,7 +10,7 @@
 
 
 	<target name="create_jar">
-		<jar destfile="${jarname}">
+		<jar destfile="lib/${jarname}">
 			<manifest>
 				<attribute name="Class-Path" value=". commons-lang-2.1.jar json-simple-1.1.1.jar gson-2.3.jar commons-io-2.4.jar Catalano.Image.jar Catalano.Core.jar Catalano.Math.jar Catalano.Statistics.jar" />
 			</manifest>
