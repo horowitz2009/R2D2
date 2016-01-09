@@ -66,6 +66,11 @@ public class MouseRobot {
 	}
 
 	public void drag2(int x1, int y1, int x2, int y2) throws RobotInterruptedException {
+		drag2Int(x1, y1, x2, y2, true, true);
+	}
+
+	public void drag2Int(int x1, int y1, int x2, int y2, boolean extraMove, boolean simBreaks)
+	    throws RobotInterruptedException {
 		Robot robot = getInstance();
 		mouseMove(x1, y1);
 		saveCurrentPosition();
@@ -83,11 +88,11 @@ public class MouseRobot {
 			step = d <= maxStep ? d : maxStep;
 			double turns = d / step;
 			// case 1 - a > 0 => moving east
-
-			x = x + (a > 0 ? 7 : -7);
-			mouseMove(x, y);
-			delay(200);
-
+			if (extraMove) {
+				x = x + (a > 0 ? 7 : -7);
+				mouseMove(x, y);
+				delay(200);
+			}
 			for (int i = 0; i < turns; i++) {
 				x = x + (a > 0 ? step : -step);
 				mouseMove(x, y);
@@ -98,12 +103,14 @@ public class MouseRobot {
 			mouseMove(x, y);
 			delay(70);
 
-			// move a bit farther and then back
-			x = x + (a > 0 ? 5 : -5);
-			mouseMove(x, y);
-			delay(470);
-			x = x - (a > 0 ? 5 : -5);
-			mouseMove(x, y);
+			if (simBreaks) {
+				// move a bit farther and then back
+				x = x + (a > 0 ? 5 : -5);
+				mouseMove(x, y);
+				delay(470);
+				x = x - (a > 0 ? 5 : -5);
+				mouseMove(x, y);
+			}
 			delay(270);
 		}
 
@@ -122,12 +129,14 @@ public class MouseRobot {
 			mouseMove(x, y);
 			delay(70);
 
-			// move a bit farther and then back
-			y = y + (b > 0 ? 5 : -5);
-			mouseMove(x, y);
-			delay(470);
-			y = y - (b > 0 ? 5 : -5);
-			mouseMove(x, y);
+			if (simBreaks) {
+				// move a bit farther and then back
+				y = y + (b > 0 ? 5 : -5);
+				mouseMove(x, y);
+				delay(470);
+				y = y - (b > 0 ? 5 : -5);
+				mouseMove(x, y);
+			}
 			delay(270);
 
 		}
@@ -135,6 +144,57 @@ public class MouseRobot {
 		delay(200);
 		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 		saveCurrentPosition();
+	}
+
+	/**
+	 * This drag supports minimal dragging. Some environments don't start dragging if mouse moved only 6-8 pixels. To prevent this drag starts dragging in the opposite direction, then return back + the
+	 * desired distance
+	 * 
+	 * @param x1
+	 * @param y1
+	 * @param x2
+	 * @param y2
+	 * @throws RobotInterruptedException
+	 */
+	public void drag3(final int x1, final int y1, final int x2, final int y2) throws RobotInterruptedException {
+		int oppositeStep = 60;
+
+		if (x1 != x2) {// move horizontally with high precision
+			int a = x2 - x1;
+			int d = Math.abs(a);
+			if (d < 8) {
+				// too small distance
+				int x1New = x1 + ((a > 0) ? oppositeStep : -oppositeStep);
+				// move back
+				drag2Int(x1New, y1, x1, y1, false, false);
+				// then
+				int x2New2 = x1 + ((a > 0) ? (oppositeStep + d) : -(oppositeStep + d));
+				drag2Int(x1, y1, x2New2, y1, false, false);
+			} else {
+				// normal drag
+				drag2Int(x1, y1, x2, y2, false, false);
+			}
+		}
+
+		// ////////////////////////////////////////
+
+		if (y1 != y2) {// move horizontally with high precision
+			int a = y2 - y1;
+			int d = Math.abs(a);
+			if (d < 8) {
+				// too small distance
+				int y1New = y1 + ((a > 0) ? oppositeStep : -oppositeStep);
+				// move back
+				drag2Int(x1, y1New, x1, y1, false, false);
+				// then
+				int y2New2 = y1 + ((a > 0) ? (oppositeStep + d) : -(oppositeStep + d));
+				drag2Int(x1, y1, x1, y2New2, false, false);
+			} else {
+				// normal drag
+				drag2Int(x1, y1, x2, y2, false, false);
+			}
+		}
+
 	}
 
 	public void drag(int x1, int y1, int x2, int y2) throws RobotInterruptedException {
@@ -233,15 +293,15 @@ public class MouseRobot {
 				_support.firePropertyChange("DELAY", 0, i * 10000);
 				if (checkUserMovement)
 					checkUserMovement();
-      }
+			}
 			if (remainder > 0) {
 				getInstance().delay(remainder);
 				_support.firePropertyChange("DELAY", 0, ms);
 			}
-			
+
 		} else {
-		  getInstance().delay(ms);
-		  //_support.firePropertyChange("DELAY", 0, ms);
+			getInstance().delay(ms);
+			// _support.firePropertyChange("DELAY", 0, ms);
 		}
 		if (checkUserMovement)
 			checkUserMovement();
@@ -320,18 +380,18 @@ public class MouseRobot {
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
-	  _support.addPropertyChangeListener(listener);
-  }
+		_support.addPropertyChangeListener(listener);
+	}
 
 	public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-	  _support.addPropertyChangeListener(propertyName, listener);
-  }
+		_support.addPropertyChangeListener(propertyName, listener);
+	}
 
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
-	  _support.removePropertyChangeListener(listener);
-  }
+		_support.removePropertyChangeListener(listener);
+	}
 
 	public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-	  _support.removePropertyChangeListener(propertyName, listener);
-  }
+		_support.removePropertyChangeListener(propertyName, listener);
+	}
 }
