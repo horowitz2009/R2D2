@@ -35,7 +35,11 @@ public class Settings {
       File file = new File(_filename);
       if (file.exists()) {
         FileInputStream fis = new FileInputStream(file);
-        _properties.load(fis);
+        try {
+          _properties.load(fis);
+        } finally {
+          fis.close();
+        }
         return true;
       } else {
         //System.err.println("Settings file " + _filename + " does not exist! Setting defaults");

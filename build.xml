@@ -31,7 +31,7 @@
 
 	<target name="copy">
 		<mkdir dir="${dropbox}/${subfolder}" />
-		<copy todir="${dropbox}/${subfolder}/lib" file="${jarname}" />
+		<copy todir="${dropbox}/${subfolder}/lib" file="lib/${jarname}" />
 		<mkdir dir="${dropbox}/${subfolder}/lib" />
 		<copy file="lib/commons-lang-2.1.jar" todir="${dropbox}/${subfolder}/lib" />
 		<copy file="lib/json-simple-1.1.1.jar" todir="${dropbox}/${subfolder}/lib" />
