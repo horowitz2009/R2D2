@@ -107,7 +107,7 @@ public class MotionDetector {
 
   }
   
-  public List<Blob> detect(BufferedImage image1, BufferedImage image2) {
+  public List<Blob> detect(BufferedImage image1, BufferedImage image2, int minArea) {
     FastBitmap fb = new FastBitmap(image1);
     FastBitmap fb2 = new FastBitmap(image2);
     fb.toGrayscale();
@@ -115,17 +115,42 @@ public class MotionDetector {
     
     Difference difference = new Difference(fb);
     Threshold threshold = new Threshold(5);
-    BinaryOpening opening = new BinaryOpening(2);
+    //BinaryOpening opening = new BinaryOpening(2);
 
     difference.applyInPlace(fb2);
     threshold.applyInPlace(fb2);
-    opening.applyInPlace(fb2);
+    //opening.applyInPlace(fb2);
     
     BlobDetection bd = new BlobDetection(BlobDetection.Algorithm.EightWay);
-    bd.setMinArea(50*50);
-    bd.setMaxArea(60*60);
+    if (minArea > 0) {
+      bd.setFilterBlob(true);
+      bd.setMinArea(minArea);
+      bd.setMaxArea(60*60);
+    }
     
     return bd.ProcessImage(fb2);
+  }
+  
+  public BlobDetection detect2(BufferedImage image1, BufferedImage image2) {
+  	FastBitmap fb = new FastBitmap(image1);
+  	FastBitmap fb2 = new FastBitmap(image2);
+  	fb.toGrayscale();
+  	fb2.toGrayscale();
+  	
+  	Difference difference = new Difference(fb);
+  	Threshold threshold = new Threshold(5);
+  	BinaryOpening opening = new BinaryOpening(2);
+  	
+  	difference.applyInPlace(fb2);
+  	threshold.applyInPlace(fb2);
+  	opening.applyInPlace(fb2);
+  	
+  	BlobDetection bd = new BlobDetection(BlobDetection.Algorithm.EightWay);
+  	bd.setMinArea(50*50);
+  	bd.setMaxArea(60*60);
+  	
+  	bd.ProcessImage(fb2);
+  	return bd;
   }
 
 }
