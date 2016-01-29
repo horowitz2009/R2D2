@@ -67,6 +67,11 @@ public class DateUtils {
     return df.format(time);
   }
   
+  public static String formatDateForFileMS(long time) {
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk mm ss.SSS");
+    return df.format(time);
+  }
+  
   public static String formatDateForFile2(long time) {
     SimpleDateFormat df = new SimpleDateFormat("MM-dd  kk mm");
     return df.format(time);
