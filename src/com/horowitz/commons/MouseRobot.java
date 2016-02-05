@@ -89,7 +89,7 @@ public class MouseRobot {
 			double turns = d / step;
 			// case 1 - a > 0 => moving east
 			if (extraMove) {
-				x = x + (a > 0 ? 7 : -7);
+				x = x + (a > 0 ? 6 : -7);
 				mouseMove(x, y);
 				delay(200);
 			}
@@ -105,10 +105,10 @@ public class MouseRobot {
 
 			if (simBreaks) {
 				// move a bit farther and then back
-				x = x + (a > 0 ? 5 : -5);
+				x = x + (a > 0 ? 3 : -3);
 				mouseMove(x, y);
 				delay(470);
-				x = x - (a > 0 ? 5 : -5);
+				x = x - (a > 0 ? 3 : -3);
 				mouseMove(x, y);
 			}
 			delay(270);
