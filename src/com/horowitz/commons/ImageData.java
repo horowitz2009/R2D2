@@ -31,9 +31,9 @@ public class ImageData implements Serializable {
 
   private transient BufferedImage _image;
   private transient ImageComparator _comparator;
-  private int _xOff;
+  private int _xOff = 0;
 
-  private int _yOff;
+  private int _yOff = 0;
 
   public ImageData(String filename, Rectangle defaultArea, ImageComparator comparator, int xOff, int yOff)
       throws IOException {
@@ -101,9 +101,7 @@ public class ImageData implements Serializable {
         final BufferedImage subimage = screen.getSubimage(i, j, _image.getWidth(), _image.getHeight());
         writeImage(subimage, 201);
         if (_comparator.compare(_image, subimage, _colors, _mask)) {
-          Pixel p = new Pixel(i, j);
-          Pixel resultPixel = new Pixel(p.x + _xOff, p.y + _yOff);
-          return resultPixel;
+          return new Pixel(i, j);
         }
       }
     }
@@ -113,7 +111,7 @@ public class ImageData implements Serializable {
   public Pixel findImageExclude(BufferedImage screen) {
     return _comparator.findImage(_image, screen, _colorToBypass);
   }
-  
+
   private void writeImage(BufferedImage image, int n) {
     if (false)
       try {
@@ -133,10 +131,12 @@ public class ImageData implements Serializable {
         p = findImageExclude(screen);
       else
         p = findImage(screen);
-      
+
       if (p != null) {
-        p.x = p.x + area.x;
-        p.y = p.y + area.y;
+        p.x += area.x;
+        p.y += area.y;
+        p.x += _xOff;
+        p.y += _yOff;
       }
     } catch (AWTException e) {
       e.printStackTrace();

@@ -16,7 +16,8 @@ import java.util.logging.Logger;
 
 public class GameLocator {
 
-  public final static Logger LOGGER = Logger.getLogger(GameLocator.class.getName());
+  private final static Logger LOGGER = Logger.getLogger("MAIN");
+  
   public final static boolean DEBUG = false;
 
   private ImageComparator _comparator;
