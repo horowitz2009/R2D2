@@ -157,12 +157,12 @@ public class MouseRobot {
 	 * @throws RobotInterruptedException
 	 */
 	public void drag3(final int x1, final int y1, final int x2, final int y2) throws RobotInterruptedException {
-		int oppositeStep = 60;
+		int oppositeStep = 12;
 
 		if (x1 != x2) {// move horizontally with high precision
 			int a = x2 - x1;
 			int d = Math.abs(a);
-			if (d < 8) {
+			if (d < 11) {
 				// too small distance
 				int x1New = x1 + ((a > 0) ? oppositeStep : -oppositeStep);
 				// move back
@@ -181,7 +181,7 @@ public class MouseRobot {
 		if (y1 != y2) {// move horizontally with high precision
 			int a = y2 - y1;
 			int d = Math.abs(a);
-			if (d < 8) {
+			if (d < 11) {
 				// too small distance
 				int y1New = y1 + ((a > 0) ? oppositeStep : -oppositeStep);
 				// move back
