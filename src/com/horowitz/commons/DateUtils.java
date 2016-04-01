@@ -63,17 +63,17 @@ public class DateUtils {
   }
 
   public static String formatDateForFile(long time) {
-    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk mm ss");
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH mm ss");
     return df.format(time);
   }
   
   public static String formatDateForFileMS(long time) {
-    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd kk mm ss.SSS");
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH mm ss.SSS");
     return df.format(time);
   }
   
   public static String formatDateForFile2(long time) {
-    SimpleDateFormat df = new SimpleDateFormat("MM-dd  kk mm");
+    SimpleDateFormat df = new SimpleDateFormat("MM-dd  HH mm");
     return df.format(time);
   }
 
