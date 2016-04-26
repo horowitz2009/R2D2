@@ -3,7 +3,6 @@ package com.horowitz.ocr;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Blob;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -16,6 +15,7 @@ import Catalano.Imaging.Filters.ColorFiltering;
 import Catalano.Imaging.Filters.Or;
 import Catalano.Imaging.Filters.ReplaceColor;
 import Catalano.Imaging.Filters.Xor;
+import Catalano.Imaging.Tools.Blob;
 
 public class OCRC {
 
