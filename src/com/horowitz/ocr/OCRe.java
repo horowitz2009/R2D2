@@ -55,7 +55,7 @@ public class OCRe {
   private void clean(String folder, String prefix) {
     File dir = new File(folder + "/output");
     if (dir.exists()) {
-      
+
       File[] listFiles = dir.listFiles();
       for (File file : listFiles) {
         file.delete();
@@ -71,17 +71,24 @@ public class OCRe {
     fb2.toGrayscale();
     return null;
   }
-  
-  
 
   private void processResources(String folder, String prefix, String resultFolder) {
     File dir = new File(folder);
     if (dir.exists() && dir.isDirectory()) {
+
+      // SLASH
+      {
+        int n = 0;
+        String fn = "";
+        do {
+          n++;
+          fn = folder + "/" + prefix + "slash" + n + ".bmp";
+        } while (new File(fn).exists());
+
+        processResources(folder, prefix + "slash", n - 1, resultFolder);
+      }
       
-      //SLASH
-      processResources(folder, prefix + "slash", 1, resultFolder);
-      
-      //NUMBERS
+      // NUMBERS
       for (int d = 0; d <= 9; d++) {
         int n = 0;
         String fn = "";
@@ -114,26 +121,25 @@ public class OCRe {
 
         new File(folder + "/output").mkdirs();
         new File(resultFolder).mkdirs();
-        
+
         fb.saveAsBMP(folder + "/output/" + prefix + j + ".bmp");
-        
+
         System.out.println(folder + "/output/" + prefix + j + ".bmp");
 
       }
-      ///////////////////////////////////////
+      // /////////////////////////////////////
       if (n > 1) {
         FastBitmap fbAND = processDigitAND(folder + "/output/" + prefix, n);
         FastBitmap fbXOR = processDigitOR(folder + "/output/" + prefix, n);
         Xor xor = new Xor(fbAND);
         xor.applyInPlace(fbXOR);
-        
-        
+
         try {
           ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File(folder + "/output/" + prefix + " XOR.bmp"));
         } catch (IOException e) {
           e.printStackTrace();
         }
-        
+
         fbAND.toRGB();
         fbXOR.toRGB();
         ReplaceColor rc = new ReplaceColor(255, 255, 255);
@@ -153,9 +159,9 @@ public class OCRe {
           fb.saveAsBMP(resultFolder + "/" + prefix + ".bmp");
         }
       }
-      
-      ///////////////////////////////////////
-      
+
+      // /////////////////////////////////////
+
       System.out.println("Done.");
 
     } catch (IOException e) {
