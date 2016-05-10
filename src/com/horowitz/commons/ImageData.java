@@ -8,10 +8,13 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -49,7 +52,15 @@ public class ImageData implements Serializable {
   }
 
   private void loadImage(String filename) throws IOException {
-    _image = ImageIO.read(ImageManager.getImageURL(filename));
+    try {
+      URL url = ImageManager.getImageURL(filename);
+      if (url != null)
+        _image = ImageIO.read(url);
+      else
+        _image = ImageIO.read(new File(filename));
+    } catch (IOException e) {
+      _image = ImageIO.read(new File(filename));
+    }
     ImageMask imageMask = new ImageMask(filename);
     _colorToBypass = lookForColorToBypass(filename);
     _mask = imageMask.getMask();
@@ -59,7 +70,13 @@ public class ImageData implements Serializable {
   private Color lookForColorToBypass(String name) {
     Color c = null;
 
-    InputStream stream = ImageMask.class.getClassLoader().getResourceAsStream(name + ".colorToBypass.txt");
+    InputStream stream;
+    try {
+      stream = new FileInputStream(name + ".colorToBypass.txt");
+    } catch (FileNotFoundException e1) {
+      stream = ImageMask.class.getClassLoader().getResourceAsStream(name + ".colorToBypass.txt");
+    } 
+    
     if (stream != null) {
       DataInputStream reader = new DataInputStream(stream);
       BufferedReader br = new BufferedReader(new InputStreamReader(reader));
