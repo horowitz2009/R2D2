@@ -17,13 +17,14 @@ import java.util.logging.Logger;
 public class GameLocator {
 
   private final static Logger LOGGER = Logger.getLogger("MAIN");
-  
+
   public final static boolean DEBUG = false;
 
   private ImageComparator _comparator;
 
   private Pixel _br = null;
   private Pixel _tl = null;
+
   private boolean _fullyOptimized;
 
   public GameLocator() {
@@ -68,8 +69,11 @@ public class GameLocator {
     do {
       turns++;
       {
-        _tl = locateImageCoords(topLeft, areaTL);
-
+        if (topLeft != null)
+          _tl = locateImageCoords(topLeft, areaTL);
+        else
+          _tl = new Pixel(0, 0);
+        
         if (_tl != null) {
           if (_tl.x < 0)
             _tl.x = 0;
@@ -195,6 +199,10 @@ public class GameLocator {
 
   public Pixel getTopLeft() {
     return _tl;
+  }
+
+  public void setTopLeft(Pixel tl) {
+    _tl = tl;
   }
 
 }
