@@ -164,7 +164,7 @@ public class MouseRobot {
 	  // checkUserMovement();
 	  int x = x1;
 	  int y = y1;
-	  int maxStep = 10;
+	  int maxStep = 5;
 	  int step = maxStep;
 	  
 	  if (y1 != y2) {// move vertically with high precision
@@ -172,6 +172,12 @@ public class MouseRobot {
 		  int d = Math.abs(b);
 		  step = d <= maxStep ? d : maxStep;
 		  double turns = d / step;
+      if (extraMove) {
+        y = y + (b > 0 ? 7 : -8);
+        mouseMove(x, y);
+        delay(200);
+      }
+
 		  for (int i = 0; i < turns; i++) {
 			  y = y + (b > 0 ? step : -step);
 			  mouseMove(x, y);
@@ -184,10 +190,10 @@ public class MouseRobot {
 		  
 		  if (simBreaks) {
 			  // move a bit farther and then back
-			  y = y + (b > 0 ? 5 : -5);
+			  y = y + (b > 0 ? 3 : -3);
 			  mouseMove(x, y);
 			  delay(470);
-			  y = y - (b > 0 ? 5 : -5);
+			  y = y - (b > 0 ? 3 : -3);
 			  mouseMove(x, y);
 			  delay(270);
 		  }
@@ -200,11 +206,11 @@ public class MouseRobot {
 		  step = d <= maxStep ? d : maxStep;
 		  double turns = d / step;
 		  // case 1 - a > 0 => moving east
-		  if (extraMove) {
-			  x = x + (a > 0 ? 6 : -7);
-			  mouseMove(x, y);
-			  delay(200);
-		  }
+//		  if (extraMove) {
+//			  x = x + (a > 0 ? 7 : -8);
+//			  mouseMove(x, y);
+//			  delay(200);
+//		  }
 		  for (int i = 0; i < turns; i++) {
 			  x = x + (a > 0 ? step : -step);
 			  mouseMove(x, y);
@@ -228,7 +234,7 @@ public class MouseRobot {
 	  }
 
 	  
-	  delay(2000);
+	  delay(1000);
 	  robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	  saveCurrentPosition();
   }
