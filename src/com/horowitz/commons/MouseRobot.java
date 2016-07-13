@@ -228,13 +228,11 @@ public class MouseRobot {
 			  delay(470);
 			  x = x - (a > 0 ? 3 : -3);
 			  mouseMove(x, y);
-			  delay(1000);
+			  delay(500);
 		  }
 		  delay(270);
 	  }
 
-	  
-	  delay(1000);
 	  robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 	  saveCurrentPosition();
   }
