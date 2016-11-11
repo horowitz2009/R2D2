@@ -26,6 +26,13 @@ public class MyImageIO {
 
   }
 
+  public static void writeImageTS(BufferedImage image, String filenamePrefix) {
+	SimpleDateFormat sdf = new SimpleDateFormat("MM-dd  HH-mm-ss-SSS");
+	String date = sdf.format(Calendar.getInstance().getTime());
+	String filename2 = filenamePrefix + " " + date + ".jpg";
+	writeImage(image, filename2);
+  }
+  
   public static void writeImage(BufferedImage image, String filename) {
 
     try {
@@ -58,7 +65,7 @@ public class MyImageIO {
   public static void writeAreaTS(Rectangle rect, String filenamePrefix) {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd  HH-mm-ss-SSS");
     String date = sdf.format(Calendar.getInstance().getTime());
-    String filename2 = filenamePrefix + " " + date + ".png";
+    String filename2 = filenamePrefix + " " + date + ".jpg";
 
     writeArea(rect, filename2);
   }

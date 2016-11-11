@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_jar" name="Create Jar for Horowitz Commons">
-	<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
-
+<project default="copy-jar" name="Create Jar for Horowitz Commons">
+	<!--<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+-->
 	<property name="versionNumber" value="1.1" />
 
 	<property name="jarname" value="horowitz-commons-${versionNumber}.jar" description="" />
@@ -25,10 +25,21 @@
 		<property name="spZhivko_subfolder" value="SeaportZHIVKO" />
 		<property name="spZhivko_subfolder2" value="SeaportZHIVKO2" />
 
-		<foreach list="${office_subfolder},${office_subfolder2},${spZhivko_subfolder},${spZhivko_subfolder2}" param="subfolder" target="copy" />
-		
+		<!--<foreach list="${office_subfolder},${office_subfolder2},${spZhivko_subfolder},${spZhivko_subfolder2}" param="subfolder" target="copy" />
+		-->
 	</target>
 
+	<target name="copy-jar" depends="create_jar">
+
+		<property name="dir1" value="SeaportZHIVKO2/lib" />
+		<mkdir dir="${dropbox}/${dir1}" />
+		<copy todir="${dropbox}/${dir1}" file="lib/${jarname}" />
+
+		<property name="dir2" value="SeaportROSKO/lib" />
+		<mkdir dir="${dropbox}/${dir2}" />
+		<copy todir="${dropbox}/${dir2}" file="lib/${jarname}" />
+	</target>
+	
 	<target name="copy">
 		<mkdir dir="${dropbox}/${subfolder}" />
 		<copy todir="${dropbox}/${subfolder}/lib" file="lib/${jarname}" />
