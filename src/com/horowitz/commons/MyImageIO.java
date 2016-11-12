@@ -62,10 +62,16 @@ public class MyImageIO {
     }
   }
 
-  public static void writeAreaTS(Rectangle rect, String filenamePrefix) {
+  public static void writeAreaTS(Rectangle rect, String filename) {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd  HH-mm-ss-SSS");
     String date = sdf.format(Calendar.getInstance().getTime());
-    String filename2 = filenamePrefix + " " + date + ".jpg";
+    int ind = filename.indexOf(".");
+    String ext = ".jpg";
+    if (ind > 0) {
+    	ext = filename.substring(ind);
+    	filename = filename.substring(0, ind);
+    }
+    String filename2 = filename + " " + date + ext;
 
     writeArea(rect, filename2);
   }
