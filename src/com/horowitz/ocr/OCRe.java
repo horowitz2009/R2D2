@@ -2,7 +2,6 @@ package com.horowitz.ocr;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
 
@@ -19,10 +18,44 @@ import Catalano.Imaging.Filters.Threshold;
 import Catalano.Imaging.Filters.Xor;
 import Catalano.Imaging.Tools.Blob;
 
+import com.horowitz.commons.ImageComparator;
+
 public class OCRe {
 	private ColorFiltering colorFiltering;
 	private Threshold threshold;
 	boolean negative = false;
+	private OCRB ocrb;
+
+	public OCRe() {
+		super();
+		threshold = new Threshold(200);
+	}
+
+	public OCRe(String prefix) throws IOException {
+		super();
+		threshold = new Threshold(200);
+		ocrb = new OCRB(prefix);
+	}
+
+	public OCRe(String prefix, ImageComparator comparator) throws IOException {
+		super();
+		threshold = new Threshold(200);
+		ocrb = new OCRB(prefix, comparator);
+	}
+
+	public OCRe(OCRB ocrb) throws IOException {
+		super();
+		threshold = new Threshold(200);
+		this.ocrb = ocrb;
+	}
+
+	public OCRB getOcrb() {
+		return ocrb;
+	}
+
+	public void setOcrb(OCRB ocrb) {
+		this.ocrb = ocrb;
+	}
 
 	public boolean isNegative() {
 		return negative;
@@ -50,13 +83,39 @@ public class OCRe {
 
 	public static void main(String[] args) {
 		OCRe ocr = new OCRe();
-		Threshold t = new Threshold(200);
-		ocr.setThreshold(t);
-		ocr.learn("dazeEnergy", "s", "dazeEnergy/res", true);
-
+		//ocr.learn("ocrTemp", "coin", "ocrTemp/res", true);
+		ocr.learn("ocrTemp", "pass", "images/ocr/pass", true);
 	}
 
-	public void learn(String inputFolder, String prefix, String resultFolder, boolean clean) {
+	public String scanImage(BufferedImage image) {
+		if (ocrb == null)
+			return "";
+		FastBitmap fb = new FastBitmap(image);
+
+		if (colorFiltering != null)
+			colorFiltering.applyInPlace(fb);
+		if (threshold != null) {
+			if (!fb.isGrayscale())
+				fb.toGrayscale();
+			if (negative) {
+				Invert invert = new Invert();
+				invert.applyInPlace(fb);
+			}
+
+			threshold.applyInPlace(fb);
+		}
+		//fb.saveAsPNG("processed.png");
+		return ocrb.scanImage(fb.toBufferedImage());
+	}
+
+	public String scanImage(String filename) throws IOException {
+		File f = new File(filename);
+		BufferedImage image = ImageIO.read(f);
+		return scanImage(image);
+	}
+
+	public void learn(String inputFolder, String prefix, String resultFolder,
+			boolean clean) {
 		processResources(inputFolder, prefix, resultFolder);
 		if (clean)
 			clean(inputFolder, prefix);
@@ -82,7 +141,8 @@ public class OCRe {
 		return null;
 	}
 
-	private void processResources(String folder, String prefix, String resultFolder) {
+	private void processResources(String folder, String prefix,
+			String resultFolder) {
 		File dir = new File(folder);
 		if (dir.exists() && dir.isDirectory()) {
 
@@ -113,12 +173,14 @@ public class OCRe {
 		}
 	}
 
-	private void processResources(String folder, String prefix, int n, String resultFolder) {
+	private void processResources(String folder, String prefix, int n,
+			String resultFolder) {
 		try {
 			FastBitmap fb = null;
 			for (int j = 1; j <= n; j++) {
 
-				BufferedImage image = ImageIO.read(new File(folder + "/" + prefix + j + ".bmp"));
+				BufferedImage image = ImageIO.read(new File(folder + "/"
+						+ prefix + j + ".bmp"));
 				fb = new FastBitmap(image);
 
 				if (colorFiltering != null)
@@ -144,13 +206,16 @@ public class OCRe {
 			}
 			// /////////////////////////////////////
 			if (n > 1) {
-				FastBitmap fbAND = processDigitAND(folder + "/output/" + prefix, n);
-				FastBitmap fbXOR = processDigitOR(folder + "/output/" + prefix, n);
+				FastBitmap fbAND = processDigitAND(
+						folder + "/output/" + prefix, n);
+				FastBitmap fbXOR = processDigitOR(folder + "/output/" + prefix,
+						n);
 				Xor xor = new Xor(fbAND);
 				xor.applyInPlace(fbXOR);
 
 				try {
-					ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File(folder + "/output/" + prefix + " XOR.bmp"));
+					ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File(
+							folder + "/output/" + prefix + " XOR.bmp"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -164,7 +229,8 @@ public class OCRe {
 				add.applyInPlace(fbXOR);
 				try {
 					// This is the final result
-					ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File(resultFolder + "/" + prefix + ".bmp"));
+					ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File(
+							resultFolder + "/" + prefix + ".bmp"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -184,9 +250,11 @@ public class OCRe {
 		}
 	}
 
-	private static FastBitmap processDigitAND(String prefixFilename, int numImages) {
+	private static FastBitmap processDigitAND(String prefixFilename,
+			int numImages) {
 		try {
-			BufferedImage image = ImageIO.read(new File(prefixFilename + 1 + ".bmp"));
+			BufferedImage image = ImageIO.read(new File(prefixFilename + 1
+					+ ".bmp"));
 			FastBitmap fb1 = new FastBitmap(image);
 
 			// fb1.toGrayscale();
@@ -198,9 +266,11 @@ public class OCRe {
 
 				And and = new And(fb);
 				and.applyInPlace(fb1);
-				ImageIO.write(fb1.toBufferedImage(), "BMP", new File(prefixFilename + i + "AND.bmp"));
+				ImageIO.write(fb1.toBufferedImage(), "BMP", new File(
+						prefixFilename + i + "AND.bmp"));
 			}
-			ImageIO.write(fb1.toBufferedImage(), "BMP", new File(prefixFilename + "AND.bmp"));
+			ImageIO.write(fb1.toBufferedImage(), "BMP", new File(prefixFilename
+					+ "AND.bmp"));
 			System.out.println("AND Done.");
 			return fb1;
 		} catch (IOException e) {
@@ -209,9 +279,11 @@ public class OCRe {
 		return null;
 	}
 
-	private static FastBitmap processDigitOR(String prefixFilename, int numImages) {
+	private static FastBitmap processDigitOR(String prefixFilename,
+			int numImages) {
 		try {
-			BufferedImage image = ImageIO.read(new File(prefixFilename + 1 + ".bmp"));
+			BufferedImage image = ImageIO.read(new File(prefixFilename + 1
+					+ ".bmp"));
 			FastBitmap fb1 = new FastBitmap(image);
 
 			// fb1.toGrayscale();
@@ -224,7 +296,8 @@ public class OCRe {
 				Or xor = new Or(fb);
 				xor.applyInPlace(fb1);
 			}
-			ImageIO.write(fb1.toBufferedImage(), "BMP", new File(prefixFilename + "OR.bmp"));
+			ImageIO.write(fb1.toBufferedImage(), "BMP", new File(prefixFilename
+					+ "OR.bmp"));
 			System.out.println("Done.");
 
 			return fb1;
@@ -243,7 +316,8 @@ public class OCRe {
 		xor.applyInPlace(fbXOR);
 		try {
 			// This is the final result
-			ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File("ocr/digitXOR" + digit + ".bmp"));
+			ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File(
+					"ocr/digitXOR" + digit + ".bmp"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -258,7 +332,8 @@ public class OCRe {
 		add.applyInPlace(fbXOR);
 		try {
 			// This is the final result
-			ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File("ocr/digit" + digit + ".bmp"));
+			ImageIO.write(fbXOR.toBufferedImage(), "BMP", new File("ocr/digit"
+					+ digit + ".bmp"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
