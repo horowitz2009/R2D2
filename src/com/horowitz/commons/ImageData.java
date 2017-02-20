@@ -226,4 +226,8 @@ public class ImageData implements Serializable {
     _colorToBypass = colorToBypass;
   }
 
+  public void setImage(BufferedImage image) {
+    _image = image;
+  }
+
 }
