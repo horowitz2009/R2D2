@@ -52,15 +52,7 @@ public class ImageData implements Serializable {
   }
 
   private void loadImage(String filename) throws IOException {
-    try {
-      URL url = ImageManager.getImageURL(filename);
-      if (url != null)
-        _image = ImageIO.read(url);
-      else
-        _image = ImageIO.read(new File(filename));
-    } catch (IOException e) {
-      _image = ImageIO.read(new File(filename));
-    }
+    _image = ImageManager.loadImage(filename);
     ImageMask imageMask = new ImageMask(filename);
     _colorToBypass = lookForColorToBypass(filename);
     _mask = imageMask.getMask();
