@@ -116,7 +116,7 @@ public class GameLocator {
       return done;
     } else {
       _tl = new Pixel(0, 0);
-      _br = new Pixel(1600, 1000);
+      _br = new Pixel(screenSize.width - 1, screenSize.height - 61);
     }
     return false;
   }

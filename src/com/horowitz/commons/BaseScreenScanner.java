@@ -29,27 +29,28 @@ import Catalano.Imaging.Filters.Threshold;
 
 public class BaseScreenScanner {
 
-  private final static Logger LOGGER = Logger.getLogger("MAIN");
+  protected final static Logger LOGGER = Logger.getLogger("MAIN");
 
-  private Settings _settings;
-  private ImageComparator _comparator;
-  private TemplateMatcher _matcher;
-  private MouseRobot _mouse;
+  protected Settings _settings;
+  protected ImageComparator _comparator;
+  protected GameLocator _gameLocator;
+  protected TemplateMatcher _matcher;
+  protected MouseRobot _mouse;
   public Pixel _br = null;
   public Pixel _tl = null;
-  private boolean _optimized = false;
-  private boolean _debugMode = false;
+  protected boolean _optimized = false;
+  protected boolean _debugMode = true;
 
-  private Map<String, ImageData> _imageDataCache;
-  private Map<String, BufferedImage> _imageBWCache;
+  protected Map<String, ImageData> _imageDataCache;
+  protected Map<String, BufferedImage> _imageBWCache;
 
-  private Threshold _threshold = new Threshold(200);
+  protected Threshold _threshold = new Threshold(200);
 
   public BaseScreenScanner(Settings settings) {
     _settings = settings;
     _comparator = new SimilarityImageComparator(0.04, 2000);
     _matcher = new TemplateMatcher();
-
+    _gameLocator = new GameLocator();
     try {
       _mouse = new MouseRobot();
     } catch (AWTException e1) {
@@ -87,15 +88,29 @@ public class BaseScreenScanner {
   }
 
   public ImageData getImageData(String filename) throws IOException {
-    return getImageData(filename, null, 0, 0);
+    if (_imageDataCache.containsKey(filename)) {
+      return _imageDataCache.get(filename);
+    } else {
+      ImageData imageData = null;
+      try {
+        imageData = new ImageData(filename, null, _comparator, 0, 0);
+      } catch (IOException e) {
+        System.err.println(e);
+        return null;
+      }
+      if (imageData != null)
+        _imageDataCache.put(filename, imageData);
+      return imageData;
+    }
   }
 
   public ImageData getImageData(String filename, Rectangle defaultArea, int xOff, int yOff) throws IOException {
-    // if (!new File(filename).exists())
-    // return null;
-
     if (_imageDataCache.containsKey(filename)) {
-      return _imageDataCache.get(filename);
+      ImageData id = _imageDataCache.get(filename);
+      id.setDefaultArea(defaultArea);
+      id.set_xOff(xOff);
+      id.set_yOff(yOff);
+      return id;
     } else {
       ImageData imageData = null;
       try {
@@ -119,6 +134,11 @@ public class BaseScreenScanner {
       _imageBWCache.put(filename, image);
       return image;
     }
+  }
+
+  public void clearCache() {
+    _imageDataCache.clear();
+    _imageBWCache.clear();
   }
 
   // ColorFiltering
@@ -148,8 +168,7 @@ public class BaseScreenScanner {
         new Threshold(max).applyInPlace(fb);
         fb.toRGB();
 
-        Add add = new Add(colorToBypass.getRed(), colorToBypass.getGreen(),
-            colorToBypass.getBlue());
+        Add add = new Add(colorToBypass.getRed(), colorToBypass.getGreen(), colorToBypass.getBlue());
         add.setOverlayImage(fbRed);
         add.applyInPlace(fb);
         return fb.toBufferedImage();
@@ -187,18 +206,6 @@ public class BaseScreenScanner {
     } else {
       return Toolkit.getDefaultToolkit().getScreenSize().height;
     }
-  }
-
-  public ImageData generateImageData(String imageFilename) throws IOException {
-    return new ImageData(imageFilename, null, _comparator, 0, 0);
-  }
-
-  public ImageData setImageData(String imageFilename) throws IOException {
-    return getImageData(imageFilename, null, 0, 0);
-  }
-
-  public ImageData generateImageData(String imageFilename, int xOff, int yOff) throws IOException {
-    return new ImageData(imageFilename, null, _comparator, xOff, yOff);
   }
 
   public ImageComparator getImageComparator() {
@@ -398,16 +405,60 @@ public class BaseScreenScanner {
     return pixel;
   }
 
+  
+  /**
+   * Use default area or whole screen
+   * 
+   * @param filename
+   * @param click
+   * @return
+   * @throws AWTException
+   * @throws RobotInterruptedException
+   * @throws IOException
+   */
+  public Pixel scanOneFast(String filename, boolean click) throws AWTException, RobotInterruptedException, IOException {
+    // default area or whole screen
+    ImageData id = getImageData(filename);
+    return scanOneFast(id, id.getDefaultArea(), click);
+  }
+
+  /**
+   * Use this area instead of default
+   * 
+   * @param filename
+   * @param area
+   * @param click
+   * @return
+   * @throws AWTException
+   * @throws RobotInterruptedException
+   * @throws IOException
+   */
+  public Pixel scanOneFast(String filename, Rectangle area, boolean click) throws AWTException,
+      RobotInterruptedException, IOException {
+    // use this area instead of default
+    return scanOneFast(getImageData(filename), area, click);
+  }
+
+  /**
+   * Use this area instead of default. If area passed is null, use the whole screen. xOff and yOff should come with imageData
+   * @param imageData
+   * @param area
+   * @param click
+   * @return
+   * @throws AWTException
+   * @throws RobotInterruptedException
+   */
   public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click) throws AWTException,
       RobotInterruptedException {
+    // use this area instead of default. xOff and yOff should come with imageData
+    // if area is null, use the whole screen
+
     if (area == null) {
-      area = imageData.getDefaultArea();
-      if (area == null) {
-        // not recommended
-        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-        area = new Rectangle(0, 0, d.width - 1, d.height - 1);
-      }
+      // not recommended
+      Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+      area = new Rectangle(0, 0, d.width - 1, d.height - 1);
     }
+    assert area != null;
     BufferedImage screen = new Robot().createScreenCapture(area);
     if (_debugMode) {
       writeImage(screen, imageData.getName() + "_area.png");
@@ -442,8 +493,6 @@ public class BaseScreenScanner {
       image = getImageBW(filename, colorToBypass);
     }
 
-    if (area == null)
-      area = imageData.getDefaultArea();
     if (area == null)
       area = new Rectangle(new Point(0, 0), Toolkit.getDefaultToolkit().getScreenSize());
 
@@ -601,9 +650,7 @@ public class BaseScreenScanner {
       fb = new FastBitmap(image);
       fb.saveAsBMP("C:/work/haha2.bmp");
       System.err.println("done");
-      
-      
-      
+
       Pixel p = scanner.scanOneFast("C:\\prj\\repos\\Mickey2\\images\\journey.bmp", null, Color.RED, true);
       System.err.println(p);
     } catch (IOException e) {
@@ -617,6 +664,11 @@ public class BaseScreenScanner {
       e.printStackTrace();
     }
 
+  }
+
+  public boolean locateGameArea(ImageData topLeft, ImageData bottomRight, boolean scroll) throws AWTException,
+      IOException, RobotInterruptedException {
+    return _gameLocator.locateGameArea(topLeft, bottomRight, scroll);
   }
 
 }
