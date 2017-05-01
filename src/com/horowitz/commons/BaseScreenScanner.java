@@ -39,7 +39,7 @@ public class BaseScreenScanner {
   public Pixel _br = null;
   public Pixel _tl = null;
   protected boolean _optimized = false;
-  protected boolean _debugMode = true;
+  protected boolean _debugMode = false;
 
   protected Map<String, ImageData> _imageDataCache;
   protected Map<String, BufferedImage> _imageBWCache;
@@ -605,11 +605,15 @@ public class BaseScreenScanner {
 
   }
 
-  public void captureGameAreaDT() {
+  public void captureGameAreaDT(String prefixName) {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd  HH-mm-ss-SSS");
     String date = sdf.format(Calendar.getInstance().getTime());
-    String filename = "popup " + date + ".jpg";
+    String filename = prefixName + " " + date + ".jpg";
     captureGameArea(filename);
+  }
+  
+  public void captureGameAreaDT() {
+    captureGameAreaDT("popup");
   }
 
   public void captureGameArea(String filename) {

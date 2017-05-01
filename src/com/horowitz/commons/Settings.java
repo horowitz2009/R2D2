@@ -14,13 +14,15 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class Settings {
-  Properties                  _properties;
-  String                      _filename;
+  private Properties _properties;
+  private String _filename;
+  private boolean _dirty;
 
   public Settings(String filename) {
     super();
     _properties = new Properties();
     _filename = filename;
+    _dirty = false;
   }
 
   public static Settings createSettings(String filename) {
@@ -28,7 +30,7 @@ public class Settings {
     s.loadSettings();
     return s;
   }
-  
+
   public boolean loadSettings() {
 
     try {
@@ -42,8 +44,9 @@ public class Settings {
         }
         return true;
       } else {
-        //System.err.println("Settings file " + _filename + " does not exist! Setting defaults");
-        //setDefaults();
+        // System.err.println("Settings file " + _filename +
+        // " does not exist! Setting defaults");
+        // setDefaults();
         return false;
       }
     } catch (FileNotFoundException e) {
@@ -53,7 +56,7 @@ public class Settings {
     }
     return false;
   }
-  
+
   /**
    * @deprecated
    */
@@ -106,8 +109,8 @@ public class Settings {
   public Rectangle getArea(String key, int baseX, int baseY) {
     String val = _properties.getProperty(key);
     String[] split = val.split(",");
-    Rectangle res = new Rectangle(baseX + Integer.parseInt(split[0].trim()), baseY + Integer.parseInt(split[1].trim()), Integer.parseInt(split[2]
-        .trim()), Integer.parseInt(split[3].trim()));
+    Rectangle res = new Rectangle(baseX + Integer.parseInt(split[0].trim()), baseY + Integer.parseInt(split[1].trim()),
+        Integer.parseInt(split[2].trim()), Integer.parseInt(split[3].trim()));
     return res;
   }
 
@@ -124,15 +127,16 @@ public class Settings {
   }
 
   public boolean getBoolean(String key, boolean defaultValue) {
-    String v =  _properties.getProperty(key, defaultValue ? "true": "false");
+    String v = _properties.getProperty(key, defaultValue ? "true" : "false");
     return "true".equalsIgnoreCase(v);
   }
-  
+
   public void saveSettings() {
     try {
       FileOutputStream fos = new FileOutputStream(new File(_filename));
       _properties.store(fos, "");
       fos.close();
+      _dirty = false;
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } catch (IOException e) {
@@ -161,6 +165,7 @@ public class Settings {
       } finally {
         bw.close();
       }
+      _dirty = false;
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } catch (IOException e) {
@@ -173,7 +178,25 @@ public class Settings {
   }
 
   public void setProperty(String key, String value) {
-    _properties.setProperty(key, value);
+    String oldValue = getProperty(key);
+    if (oldValue != null && !oldValue.equals(value)) {
+      _properties.setProperty(key, value);
+      _dirty = true;
+    }
+  }
+
+  public boolean isDirty() {
+    return _dirty;
+  }
+
+  public void setDirty(boolean dirty) {
+    this._dirty = dirty;
+  }
+
+  public synchronized void saveIfDirty() {
+    if (_dirty) {
+      saveSettingsSorted();
+    }
   }
 
 }
