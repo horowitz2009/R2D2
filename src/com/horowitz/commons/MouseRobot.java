@@ -237,6 +237,89 @@ public class MouseRobot {
 	  saveCurrentPosition();
   }
 
+  public void dragFast(int x1, int y1, int x2, int y2, boolean extraMove, boolean simBreaks)
+      throws RobotInterruptedException {
+    Robot robot = getInstance();
+    mouseMove(x1, y1);
+    saveCurrentPosition();
+    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    delay(200);
+    // checkUserMovement();
+    int x = x1;
+    int y = y1;
+    int maxStep = 10;
+    int step = maxStep;
+    
+    if (y1 != y2) {// move vertically with high precision
+      int b = y2 - y1;
+      int d = Math.abs(b);
+      step = d <= maxStep ? d : maxStep;
+      double turns = d / step;
+      if (extraMove) {
+        y = y + (b > 0 ? 7 : -8);
+        mouseMove(x, y);
+        delay(100);
+      }
+      
+      for (int i = 0; i < turns; i++) {
+        y = y + (b > 0 ? step : -step);
+        mouseMove(x, y);
+        delay(40);
+      }
+      int rest = d % step;
+      y = y + (b > 0 ? rest : -rest);
+      mouseMove(x, y);
+      delay(40);
+      
+      if (simBreaks) {
+        // move a bit farther and then back
+        y = y + (b > 0 ? 3 : -3);
+        mouseMove(x, y);
+        delay(470);
+        y = y - (b > 0 ? 3 : -3);
+        mouseMove(x, y);
+        delay(270);
+      }
+      delay(270);
+      
+    }
+    if (x1 != x2) {// move horizontally with high precision
+      int a = x2 - x1;
+      int d = Math.abs(a);
+      step = d <= maxStep ? d : maxStep;
+      double turns = d / step;
+      // case 1 - a > 0 => moving east
+//		  if (extraMove) {
+//			  x = x + (a > 0 ? 7 : -8);
+//			  mouseMove(x, y);
+//			  delay(200);
+//		  }
+      for (int i = 0; i < turns; i++) {
+        x = x + (a > 0 ? step : -step);
+        mouseMove(x, y);
+        delay(40);
+      }
+      int rest = d % step;
+      x = x + (a > 0 ? rest : -rest);
+      mouseMove(x, y);
+      delay(40);
+      
+      if (simBreaks) {
+        // move a bit farther and then back
+        x = x + (a > 0 ? 3 : -3);
+        mouseMove(x, y);
+        delay(470);
+        x = x - (a > 0 ? 3 : -3);
+        mouseMove(x, y);
+        delay(500);
+      }
+      delay(170);
+    }
+    
+    robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    saveCurrentPosition();
+  }
+  
   /**
    * This drag supports minimal dragging. Some environments don't start dragging
    * if mouse moved only 6-8 pixels. To prevent this drag starts dragging in the
