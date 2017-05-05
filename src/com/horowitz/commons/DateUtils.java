@@ -32,6 +32,10 @@ public class DateUtils {
   }
 
   public static String fancyTime2(long time) {
+   return fancyTime2(time, false); 
+  }
+  
+  public static String fancyTime2(long time, boolean showSeconds) {
     String res = "";
     long s = time / 1000;
 
@@ -52,8 +56,8 @@ public class DateUtils {
     if (mm > 0) {
       res = res + (mm + "m ");
     }
-
-    res = res + (ss + "s");
+    if (showSeconds || ss != 0 || res.trim().isEmpty())
+      res = res + (ss + "s");
 
     return res;
   }
