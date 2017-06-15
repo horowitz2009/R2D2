@@ -71,7 +71,7 @@ public class Task implements Cloneable, Serializable {
 
 	public void execute() throws RobotInterruptedException, GameErrorException {
 		if (_protocol != null)
-			_protocol.execute();
+			_protocol.doProtocol();
 	}
 
 	public boolean isEnabled() {

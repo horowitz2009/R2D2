@@ -7,33 +7,57 @@ import com.horowitz.commons.GameErrorException;
 import com.horowitz.commons.RobotInterruptedException;
 
 public abstract class AbstractGameProtocol implements GameProtocol {
-	private boolean _interrupted = false;
+  private boolean interrupted = false;
+  private long lastActivity;
+  private int sleep;
 
-	public abstract void execute() throws RobotInterruptedException, GameErrorException;
+  public abstract void execute() throws RobotInterruptedException, GameErrorException;
 
-	public abstract boolean preExecute() throws AWTException, IOException, RobotInterruptedException;
+  public void doProtocol() throws RobotInterruptedException, GameErrorException {
+    long now = System.currentTimeMillis();
+    if (sleep == 0 || now - lastActivity > sleep) {
+      sleep = 0;
+      if (!interrupted) {
+        execute();
+        lastActivity = System.currentTimeMillis();
+      }
+    }
+  }
 
-	public abstract void update();
-	
-	@Override
-	public void interrupt() {
-		_interrupted = true;
-	}
+  /**
+   * @return true if needs update. Then manager will call update method.
+   */
+  public boolean preExecute() throws AWTException, IOException, RobotInterruptedException {
+    return false;
+  }
 
-	public boolean isInterrupted() {
-		return _interrupted;
-	}
-	
-	public void setInterrupted(boolean interrupted) {
-		_interrupted = interrupted;
-	}
+  public void update() {
 
-	public boolean isNotInterrupted() {
-		return !_interrupted;
-	}
-	
-	@Override
-	public void reset() {
-	  _interrupted = false;
-	}
+  }
+
+  public void sleep(int mills) {
+    sleep = mills;
+  }
+
+  @Override
+  public void interrupt() {
+    interrupted = true;
+  }
+
+  public boolean isInterrupted() {
+    return interrupted;
+  }
+
+  public void setInterrupted(boolean interrupted) {
+    this.interrupted = interrupted;
+  }
+
+  public boolean isNotInterrupted() {
+    return !interrupted;
+  }
+
+  @Override
+  public void reset() {
+    interrupted = false;
+  }
 }

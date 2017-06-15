@@ -10,7 +10,9 @@ public interface GameProtocol {
 
   public void update();
 
-  public void execute() throws RobotInterruptedException, GameErrorException;
+  public void doProtocol() throws RobotInterruptedException, GameErrorException;
+  
+  //public void execute() throws RobotInterruptedException, GameErrorException;
 
 	public boolean preExecute() throws AWTException, IOException, RobotInterruptedException;
   

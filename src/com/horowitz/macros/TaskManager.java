@@ -36,14 +36,20 @@ public class TaskManager {
   }
 
   public void executeAll() throws RobotInterruptedException, GameErrorException {
+    LOGGER.info(tasks.size() + " tasks...");
+    int i = 0;
     for (Task task : tasks) {
+      i++;
       if (task.isEnabled() && !stopThread) {
         try {
           mouse.checkUserMovement();
           task.preExecute();
           mouse.checkUserMovement();
-          if (!stopThread)
+          if (!stopThread) {
+            LOGGER.info(i + ". " + task.getName() + " START");
             task.execute();
+            LOGGER.info(i + ". " + task.getName() + " END");
+          }
         } catch (AWTException e) {
           LOGGER.info("FAILED TO execute task: " + task.getName());
         } catch (IOException e) {
