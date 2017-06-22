@@ -180,9 +180,9 @@ public class Settings {
   public void setProperty(String key, String value) {
     String oldValue = getProperty(key);
     if (oldValue != null && !oldValue.equals(value)) {
-      _properties.setProperty(key, value);
       _dirty = true;
     }
+    _properties.setProperty(key, value);
   }
 
   public boolean isDirty() {
