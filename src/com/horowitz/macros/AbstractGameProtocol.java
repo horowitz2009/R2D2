@@ -59,5 +59,6 @@ public abstract class AbstractGameProtocol implements GameProtocol {
   @Override
   public void reset() {
     interrupted = false;
+    sleep = 0;
   }
 }
