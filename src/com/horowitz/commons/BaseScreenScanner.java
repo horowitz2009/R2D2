@@ -173,12 +173,12 @@ public class BaseScreenScanner {
         add.applyInPlace(fb);
         return fb.toBufferedImage();
       } else
-        return convertToBW(image, colorToBypass);
+        return convertToBW(image);
     }
     return image;
   }
 
-  public BufferedImage convertToBW(BufferedImage image, Color colorToBypass) {
+  public BufferedImage convertToBW(BufferedImage image) {
     final FastBitmap fb = new FastBitmap(image);
 
     if (_threshold != null) {
@@ -355,12 +355,13 @@ public class BaseScreenScanner {
     }
     BufferedImage screen = new Robot().createScreenCapture(area);
 
-    if (imageData.getFilename().endsWith("F.bmp")) {
+    if (imageData.getFilename().endsWith("F.bmp") || bwMode) {
       FastBitmap fb = new FastBitmap(screen);
       fb.toGrayscale();
       new Threshold(200).applyInPlace(fb);
       fb.toRGB();
-      // fb.saveAsBMP("ship_area.bmp");
+      //fb.saveAsBMP("ship_area.bmp");
+      screen = fb.toBufferedImage();
     }
     Pixel pixel = _matcher.findMatch(imageData.getImage(), screen,
         colorToBypass != null ? colorToBypass : imageData.getColorToBypass());
@@ -419,7 +420,7 @@ public class BaseScreenScanner {
   public Pixel scanOneFast(String filename, boolean click) throws AWTException, RobotInterruptedException, IOException {
     // default area or whole screen
     ImageData id = getImageData(filename);
-    return scanOneFast(id, id.getDefaultArea(), click);
+    return scanOneFast(id, id.getDefaultArea(), click, false);
   }
 
   /**
@@ -436,7 +437,7 @@ public class BaseScreenScanner {
   public Pixel scanOneFast(String filename, Rectangle area, boolean click) throws AWTException,
       RobotInterruptedException, IOException {
     // use this area instead of default
-    return scanOneFast(getImageData(filename), area, click);
+    return scanOneFast(getImageData(filename), area, click, false);
   }
 
   /**
@@ -448,7 +449,8 @@ public class BaseScreenScanner {
    * @throws AWTException
    * @throws RobotInterruptedException
    */
-  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click) throws AWTException,
+  //public Pixel scanOne(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
+  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click, boolean bwMode) throws AWTException,
       RobotInterruptedException {
     // use this area instead of default. xOff and yOff should come with imageData
     // if area is null, use the whole screen
@@ -460,6 +462,18 @@ public class BaseScreenScanner {
     }
     assert area != null;
     BufferedImage screen = new Robot().createScreenCapture(area);
+    if (bwMode) {
+      FastBitmap fb = new FastBitmap(screen);
+      fb.toGrayscale();
+      new Threshold(200).applyInPlace(fb);
+      fb.toRGB();
+      screen = convertToBW(screen);
+//      fb.saveAsBMP("screen_area.bmp");
+//      FastBitmap fbImage = new FastBitmap(imageData.getImage());
+//      fbImage.toGrayscale();
+//      new Threshold(200).applyInPlace(fbImage);
+//      fbImage.toRGB();
+    }
     if (_debugMode) {
       writeImage(screen, imageData.getName() + "_area.png");
     }
@@ -498,7 +512,7 @@ public class BaseScreenScanner {
 
     BufferedImage screen = new Robot().createScreenCapture(area);
     if (bwMode) {
-      screen = convertToBW(screen, null);
+      screen = convertToBW(screen);
     }
 
     long start = System.currentTimeMillis();
