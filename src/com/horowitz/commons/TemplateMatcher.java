@@ -54,6 +54,12 @@ public class TemplateMatcher {
     return result;
   }
 
+  /**
+   * @deprecated apparently not used anymore. Insteadm use findMatch, findMatches.
+   * @param image1
+   * @param image2
+   * @return
+   */
   public boolean compare(BufferedImage image1, BufferedImage image2) {
     if ((image1.getWidth() != image2.getWidth()) || (image1.getHeight() != image2.getHeight())) {
       return (false);

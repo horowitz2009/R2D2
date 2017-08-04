@@ -2,7 +2,7 @@
 <project default="copy-jar" name="Create Jar for Horowitz Commons">
 	<!--<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
 -->
-	<property name="versionNumber" value="1.8" />
+	<property name="versionNumber" value="1.9" />
 
 	<property name="jarname" value="horowitz-commons-${versionNumber}.jar" description="" />
 
@@ -22,7 +22,7 @@
 	  
 		<property name="office_subfolder" value="office" />
 		<property name="office_subfolder2" value="office2" />
-		<property name="spZhivko_subfolder" value="SeaportZHIVKO" />
+		<property name="spZhivko_subfolder" value="TennisMania" />
 		<property name="spZhivko_subfolder2" value="SeaportZHIVKO2" />
 
 		<!--<foreach list="${office_subfolder},${office_subfolder2},${spZhivko_subfolder},${spZhivko_subfolder2}" param="subfolder" target="copy" />
@@ -35,7 +35,7 @@
 		<mkdir dir="${dropbox}/${dir1}" />
 		<copy todir="${dropbox}/${dir1}" file="lib/${jarname}" />
 
-		<property name="dir2" value="SeaportROSEN/lib" />
+		<property name="dir2" value="TennisMania/lib" />
 		<mkdir dir="${dropbox}/${dir2}" />
 		<copy todir="${dropbox}/${dir2}" file="lib/${jarname}" />
 		

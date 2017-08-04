@@ -307,13 +307,46 @@ public class BaseScreenScanner {
   }
 
   // HMM
+  public Pixel scanPrecise2(ImageData imageData, Rectangle area) throws AWTException, RobotInterruptedException {
+
+    if (area == null) {
+      area = imageData.getDefaultArea();
+    }
+    BufferedImage screen = new Robot().createScreenCapture(area);
+
+    long start = System.currentTimeMillis();
+
+    FastBitmap fbID = new FastBitmap(imageData.getImage());
+    FastBitmap fbAREA = new FastBitmap(screen);
+
+    // THRESHOLD FILTERING
+    Threshold t = new Threshold(255);
+    if (!fbID.isGrayscale())
+      fbID.toGrayscale();
+    fbAREA.toGrayscale();
+    t.applyInPlace(fbID);
+    t.applyInPlace(fbAREA);
+
+    Pixel pixel = _matcher.findMatch(fbID.toBufferedImage(), fbAREA.toBufferedImage(), null);
+    LOGGER
+        .fine("LOOKING FOR " + imageData.getName() + "  screen: " + area + " BYPASS: " + imageData.getColorToBypass());
+
+    if (pixel != null) {
+      pixel.x += (area.x + imageData.get_xOff());
+      pixel.y += (area.y + imageData.get_yOff());
+      LOGGER.fine("scanPrecise2.found: " + imageData.getName() + " - " + pixel + " "
+          + (System.currentTimeMillis() - start));
+    }
+    return pixel;
+
+  }
+
   public Pixel scanPrecise(ImageData imageData, Rectangle area) throws AWTException, RobotInterruptedException {
 
     if (area == null) {
       area = imageData.getDefaultArea();
     }
     BufferedImage screen = new Robot().createScreenCapture(area);
-    // writeImage2(area, "area.bmp");
 
     FastBitmap fbID = new FastBitmap(imageData.getImage());
     FastBitmap fbAREA = new FastBitmap(screen);
@@ -332,47 +365,65 @@ public class BaseScreenScanner {
     if (pixel != null) {
       pixel.x += (area.x + imageData.get_xOff());
       pixel.y += (area.y + imageData.get_yOff());
-      LOGGER.fine("found : " + imageData.getName() + pixel + " " + (System.currentTimeMillis() - start));
+      LOGGER.fine("scanPrecise2.found: " + imageData.getName() + " - " + pixel + " "
+          + (System.currentTimeMillis() - start));
     }
     return pixel;
 
   }
 
-  public Pixel scanOneBW(ImageData imageData, Rectangle area, boolean click) throws AWTException,
-      RobotInterruptedException {
-    return scanOne(imageData, area, click, null, true);
-  }
-
-  public Pixel scanOne(ImageData imageData, Rectangle area, boolean click) throws AWTException,
-      RobotInterruptedException {
-    return scanOne(imageData, area, click, null, false);
-  }
-
+  /**
+   * ULTIMATE.
+   * 
+   * @param imageData
+   * @param area
+   * @param click
+   * @param colorToBypass
+   * @param bwMode
+   * @return
+   * @throws AWTException
+   */
   public Pixel scanOne(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
       throws AWTException {
+    if (imageData == null)
+      return null;
+
     if (area == null) {
       area = imageData.getDefaultArea();
     }
+
+    if (area == null) {
+      // not recommended
+      Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+      area = new Rectangle(0, 0, d.width - 1, d.height - 1);
+    }
+
     BufferedImage screen = new Robot().createScreenCapture(area);
 
     if (imageData.getFilename().endsWith("F.bmp") || bwMode) {
-      FastBitmap fb = new FastBitmap(screen);
-      fb.toGrayscale();
-      new Threshold(200).applyInPlace(fb);
-      fb.toRGB();
-      //fb.saveAsBMP("ship_area.bmp");
-      screen = fb.toBufferedImage();
+      screen = convertToBW(screen);
     }
-    Pixel pixel = _matcher.findMatch(imageData.getImage(), screen,
-        colorToBypass != null ? colorToBypass : imageData.getColorToBypass());
-    LOGGER
-        .fine("LOOKING FOR " + imageData.getName() + "  screen: " + area + " BYPASS: " + imageData.getColorToBypass());
 
+    if (colorToBypass == null)
+      colorToBypass = imageData.getColorToBypass();
+
+    if (colorToBypass == null)
+      colorToBypass = Color.RED;
+
+    if (_debugMode) {
+      writeImage(screen, imageData.getName() + "_area.png");
+    }
+
+    LOGGER.fine("LOOKING FOR " + imageData.getName() + "  screen: " + area + " BYPASS: " + colorToBypass);
     long start = System.currentTimeMillis();
+
+    // The real deal
+    Pixel pixel = _matcher.findMatch(imageData.getImage(), screen, colorToBypass);
+
     if (pixel != null) {
       pixel.x += (area.x + imageData.get_xOff());
       pixel.y += (area.y + imageData.get_yOff());
-      LOGGER.fine("found : " + imageData.getName() + pixel + " " + (System.currentTimeMillis() - start));
+      LOGGER.fine("found : " + imageData.getName() + " - " + pixel + " " + (System.currentTimeMillis() - start));
       if (click) {
         _mouse.click(pixel.x, pixel.y);
       }
@@ -381,32 +432,43 @@ public class BaseScreenScanner {
 
   }
 
-  public Pixel scanOne(String filename, Rectangle area, Color colorToBypass) throws RobotInterruptedException,
-      IOException, AWTException {
-    ImageData imageData = getImageData(filename);
-    if (imageData == null)
-      return null;
-    if (area == null)
-      area = imageData.getDefaultArea();
-    if (area == null)
-      area = new Rectangle(new Point(0, 0), Toolkit.getDefaultToolkit().getScreenSize());
+  // .scanOne("DuelsClock.bmp", new Rectangle(x - 70, y, 140, 67), false);
 
-    BufferedImage screen = new Robot().createScreenCapture(area);
-    if (_debugMode)
-      writeImage(screen, imageData.getName() + "_area.png");
-    long start = System.currentTimeMillis();
-    if (colorToBypass == null)
-      colorToBypass = imageData.getColorToBypass();
-    Pixel pixel = _matcher.findMatch(imageData.getImage(), screen, colorToBypass);
-    if (pixel != null) {
-      pixel.x += (area.x + imageData.get_xOff());
-      pixel.y += (area.y + imageData.get_yOff());
-      LOGGER.fine("found: " + imageData.getName() + pixel + " " + (System.currentTimeMillis() - start));
-    }
-    return pixel;
+  public Pixel scanOne(String filename, Rectangle area, boolean click) throws AWTException, RobotInterruptedException,
+      IOException {
+    return scanOne(getImageData(filename), area, click, null, true);
   }
 
-  
+  public Pixel scanOneBW(ImageData imageData, Rectangle area, boolean click) throws AWTException,
+      RobotInterruptedException {
+    return scanOne(imageData, area, click, null, true);
+  }
+
+  /**
+   * This should be the most used method
+   * 
+   * @param imageData
+   * @param area
+   * @param click
+   * @return
+   * @throws AWTException
+   * @throws RobotInterruptedException
+   */
+  public Pixel scanOne(ImageData imageData, Rectangle area, boolean click) throws AWTException,
+      RobotInterruptedException {
+    return scanOne(imageData, area, click, null, false);
+  }
+
+  public Pixel scanOne(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
+      throws RobotInterruptedException, IOException, AWTException {
+    return scanOne(getImageData(filename), area, click, colorToBypass, bwMode);
+  }
+
+  public Pixel scanOne(String filename, Rectangle area, Color colorToBypass) throws RobotInterruptedException,
+      IOException, AWTException {
+    return scanOne(getImageData(filename), area, false, colorToBypass, false);
+  }
+
   /**
    * Use default area or whole screen
    * 
@@ -418,9 +480,7 @@ public class BaseScreenScanner {
    * @throws IOException
    */
   public Pixel scanOneFast(String filename, boolean click) throws AWTException, RobotInterruptedException, IOException {
-    // default area or whole screen
-    ImageData id = getImageData(filename);
-    return scanOneFast(id, id.getDefaultArea(), click, false);
+    return scanOneFast(getImageData(filename), null, click, null, false);
   }
 
   /**
@@ -437,11 +497,18 @@ public class BaseScreenScanner {
   public Pixel scanOneFast(String filename, Rectangle area, boolean click) throws AWTException,
       RobotInterruptedException, IOException {
     // use this area instead of default
-    return scanOneFast(getImageData(filename), area, click, false);
+    return scanOneFast(getImageData(filename), area, click, null, false);
+  }
+
+  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click) throws AWTException,
+      RobotInterruptedException {
+    return scanOneFast(imageData, area, click, null, false);
   }
 
   /**
-   * Use this area instead of default. If area passed is null, use the whole screen. xOff and yOff should come with imageData
+   * ULTIMATE Use this area instead of default. If area passed is null, use the whole screen. xOff and yOff should come
+   * with imageData
+   * 
    * @param imageData
    * @param area
    * @param click
@@ -449,81 +516,59 @@ public class BaseScreenScanner {
    * @throws AWTException
    * @throws RobotInterruptedException
    */
-  //public Pixel scanOne(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
-  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click, boolean bwMode) throws AWTException,
-      RobotInterruptedException {
-    // use this area instead of default. xOff and yOff should come with imageData
-    // if area is null, use the whole screen
+  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
+      throws AWTException, RobotInterruptedException {
+
+    if (imageData == null)
+      return null;
+
+    if (area == null) {
+      area = imageData.getDefaultArea();
+    }
 
     if (area == null) {
       // not recommended
       Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
       area = new Rectangle(0, 0, d.width - 1, d.height - 1);
     }
-    assert area != null;
+
     BufferedImage screen = new Robot().createScreenCapture(area);
-    if (bwMode) {
-      FastBitmap fb = new FastBitmap(screen);
-      fb.toGrayscale();
-      new Threshold(200).applyInPlace(fb);
-      fb.toRGB();
+
+    if (imageData.getFilename().endsWith("F.bmp") || bwMode) {
       screen = convertToBW(screen);
-//      fb.saveAsBMP("screen_area.bmp");
-//      FastBitmap fbImage = new FastBitmap(imageData.getImage());
-//      fbImage.toGrayscale();
-//      new Threshold(200).applyInPlace(fbImage);
-//      fbImage.toRGB();
     }
-    if (_debugMode) {
-      writeImage(screen, imageData.getName() + "_area.png");
-    }
-    long start = System.currentTimeMillis();
-    Pixel pixel = _comparator.findImage(imageData.getImage(), screen, imageData.getColorToBypass());
-    if (pixel != null) {
-      pixel.x += (area.x + imageData.get_xOff());
-      pixel.y += (area.y + imageData.get_yOff());
-      LOGGER.fine("found: " + imageData.getName() + pixel + " " + (System.currentTimeMillis() - start));
-      if (click) {
-        _mouse.click(pixel.x, pixel.y);
-      }
-    }
-    return pixel;
-
-  }
-
-  public Pixel scanOneFast(String filename, Rectangle area, Color colorToBypass, boolean bwMode)
-      throws RobotInterruptedException, IOException, AWTException {
-
-    ImageData imageData = getImageData(filename);
-    if (imageData == null)
-      return null;
-
-    BufferedImage image = imageData.getImage();
 
     if (colorToBypass == null)
       colorToBypass = imageData.getColorToBypass();
 
-    if (bwMode) {
-      image = getImageBW(filename, colorToBypass);
+    if (colorToBypass == null)
+      colorToBypass = Color.RED;
+
+    if (_debugMode) {
+      writeImage(screen, imageData.getName() + "_area.png");
     }
 
-    if (area == null)
-      area = new Rectangle(new Point(0, 0), Toolkit.getDefaultToolkit().getScreenSize());
-
-    BufferedImage screen = new Robot().createScreenCapture(area);
-    if (bwMode) {
-      screen = convertToBW(screen);
-    }
-
+    LOGGER.fine("LOOKING FOR " + imageData.getName() + "  screen: " + area + " BYPASS: " + colorToBypass);
     long start = System.currentTimeMillis();
 
-    Pixel pixel = _comparator.findImage(image, screen, colorToBypass);
+    // The real deal
+    Pixel pixel = _comparator.findImage(imageData.getImage(), screen, colorToBypass);
+
     if (pixel != null) {
       pixel.x += (area.x + imageData.get_xOff());
       pixel.y += (area.y + imageData.get_yOff());
-      LOGGER.fine("found: " + imageData.getName() + pixel + " " + (System.currentTimeMillis() - start));
+      LOGGER.fine("found : " + imageData.getName() + " - " + pixel + " " + (System.currentTimeMillis() - start));
+      if (click) {
+        _mouse.click(pixel.x, pixel.y);
+      }
     }
+
     return pixel;
+  }
+
+  public Pixel scanOneFast(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
+      throws AWTException, RobotInterruptedException, IOException {
+    return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode);
   }
 
   public TemplateMatcher getMatcher() {
@@ -625,7 +670,7 @@ public class BaseScreenScanner {
     String filename = prefixName + " " + date + ".jpg";
     captureGameArea(filename);
   }
-  
+
   public void captureGameAreaDT() {
     captureGameAreaDT("popup");
   }
@@ -669,7 +714,7 @@ public class BaseScreenScanner {
       fb.saveAsBMP("C:/work/haha2.bmp");
       System.err.println("done");
 
-      Pixel p = scanner.scanOneFast("C:\\prj\\repos\\Mickey2\\images\\journey.bmp", null, Color.RED, true);
+      Pixel p = scanner.scanOneFast("C:\\prj\\repos\\Mickey2\\images\\journey.bmp", null, false, Color.RED, true);
       System.err.println(p);
     } catch (IOException e) {
       // TODO Auto-generated catch block
@@ -687,6 +732,23 @@ public class BaseScreenScanner {
   public boolean locateGameArea(ImageData topLeft, ImageData bottomRight, boolean scroll) throws AWTException,
       IOException, RobotInterruptedException {
     return _gameLocator.locateGameArea(topLeft, bottomRight, scroll);
+  }
+
+  public boolean isPixelInArea(Pixel p, Rectangle area) {
+    return (p.x >= area.x && p.x <= (area.x + area.getWidth()) && p.y >= area.y && p.y <= (area.y + area.getHeight()));
+  }
+
+  public Pixel findMatch(BufferedImage template, BufferedImage image, Color colorToBypass) {
+    return _matcher.findMatch(template, image, colorToBypass);
+  }
+
+  // Pixel pixel = _matcher.findMatch(fbID.toBufferedImage(), fbAREA.toBufferedImage(), null);
+  public void reset() {
+    _optimized = false;
+    final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    _tl = new Pixel(0, 0);
+    _br = new Pixel(screenSize.width - 3, screenSize.height - 3);
+
   }
 
 }

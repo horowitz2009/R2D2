@@ -46,9 +46,9 @@ public class TaskManager {
           task.preExecute();
           mouse.checkUserMovement();
           if (!stopThread) {
-            LOGGER.info(i + ". " + task.getName() + " START");
+            //LOGGER.info(i + ". " + task.getName() + " START");
             task.execute();
-            LOGGER.info(i + ". " + task.getName() + " END");
+            //LOGGER.info(i + ". " + task.getName() + " END");
           }
         } catch (AWTException e) {
           LOGGER.info("FAILED TO execute task: " + task.getName());
