@@ -480,7 +480,7 @@ public class BaseScreenScanner {
    * @throws IOException
    */
   public Pixel scanOneFast(String filename, boolean click) throws AWTException, RobotInterruptedException, IOException {
-    return scanOneFast(getImageData(filename), null, click, null, false);
+    return scanOneFast(getImageData(filename), null, click, null, false, false);
   }
 
   /**
@@ -497,12 +497,12 @@ public class BaseScreenScanner {
   public Pixel scanOneFast(String filename, Rectangle area, boolean click) throws AWTException,
       RobotInterruptedException, IOException {
     // use this area instead of default
-    return scanOneFast(getImageData(filename), area, click, null, false);
+    return scanOneFast(getImageData(filename), area, click, null, false, false);
   }
 
   public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click) throws AWTException,
       RobotInterruptedException {
-    return scanOneFast(imageData, area, click, null, false);
+    return scanOneFast(imageData, area, click, null, false, false);
   }
 
   /**
@@ -516,7 +516,7 @@ public class BaseScreenScanner {
    * @throws AWTException
    * @throws RobotInterruptedException
    */
-  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
+  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode, boolean convertImage)
       throws AWTException, RobotInterruptedException {
 
     if (imageData == null)
@@ -551,8 +551,12 @@ public class BaseScreenScanner {
     LOGGER.fine("LOOKING FOR " + imageData.getName() + "  screen: " + area + " BYPASS: " + colorToBypass);
     long start = System.currentTimeMillis();
 
+    BufferedImage image = imageData.getImage();
+    if (convertImage)
+      image = convertToBW(image);
+    
     // The real deal
-    Pixel pixel = _comparator.findImage(imageData.getImage(), screen, colorToBypass);
+    Pixel pixel = _comparator.findImage(image, screen, colorToBypass);
 
     if (pixel != null) {
       pixel.x += (area.x + imageData.get_xOff());
@@ -566,9 +570,9 @@ public class BaseScreenScanner {
     return pixel;
   }
 
-  public Pixel scanOneFast(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
+  public Pixel scanOneFast(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode, boolean convertImage)
       throws AWTException, RobotInterruptedException, IOException {
-    return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode);
+    return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode, convertImage);
   }
 
   public TemplateMatcher getMatcher() {
@@ -714,7 +718,7 @@ public class BaseScreenScanner {
       fb.saveAsBMP("C:/work/haha2.bmp");
       System.err.println("done");
 
-      Pixel p = scanner.scanOneFast("C:\\prj\\repos\\Mickey2\\images\\journey.bmp", null, false, Color.RED, true);
+      Pixel p = scanner.scanOneFast("C:\\prj\\repos\\Mickey2\\images\\journey.bmp", null, false, Color.RED, true, false);
       System.err.println(p);
     } catch (IOException e) {
       // TODO Auto-generated catch block

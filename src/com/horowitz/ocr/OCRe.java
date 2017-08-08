@@ -84,7 +84,9 @@ public class OCRe {
 	public static void main(String[] args) {
 		OCRe ocr = new OCRe();
 		//ocr.learn("ocrTemp", "coin", "ocrTemp/res", true);
-		ocr.learn("ocrTemp", "pass", "images/ocr/pass", true);
+		//ocr.learn("ocrTemp", "pass", "images/ocr/pass", true);
+		ocr.getThreshold().setValue(160);
+		ocr.learn("ocr", "d", "images/ocr/duels", false);
 	}
 
 	public String scanImage(BufferedImage image) {
