@@ -575,6 +575,12 @@ public class BaseScreenScanner {
     return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode, convertImage);
   }
 
+  public Pixel scanOneFast(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode)
+      throws AWTException, RobotInterruptedException, IOException {
+    return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode, false);
+  }
+  
+
   public TemplateMatcher getMatcher() {
     return _matcher;
   }
@@ -754,5 +760,6 @@ public class BaseScreenScanner {
     _br = new Pixel(screenSize.width - 3, screenSize.height - 3);
 
   }
+
 
 }
