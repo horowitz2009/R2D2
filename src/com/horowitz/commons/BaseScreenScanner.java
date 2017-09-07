@@ -66,6 +66,12 @@ public class BaseScreenScanner {
     _imageDataCache = new Hashtable<String, ImageData>();
     _imageBWCache = new Hashtable<String, BufferedImage>();
 
+    reset();
+  }
+
+  public void reset() {
+    _optimized = false;
+
     final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     _tl = new Pixel(0, 0);
     _br = new Pixel(screenSize.width - 3, screenSize.height - 3);
@@ -79,9 +85,8 @@ public class BaseScreenScanner {
     _fbArea.width = _fbArea.width / 2;
     _fbArea.y += _fbArea.height / 2;
     _fbArea.height = _fbArea.height / 2;
-
   }
-  
+
   protected void setKeyAreas() throws IOException, AWTException, RobotInterruptedException {
     setOptimized(true);
     _fullArea = new Rectangle(_tl.x, _tl.y, getGameWidth(), getGameHeight());
@@ -466,7 +471,12 @@ public class BaseScreenScanner {
 
   public Pixel scanOne(String filename, Rectangle area, boolean click) throws AWTException, RobotInterruptedException,
       IOException {
-    return scanOne(getImageData(filename), area, click, null, true);
+    return scanOne(getImageData(filename), area, click, null, false);
+  }
+
+  public Pixel scanOne(String filename, Rectangle area, boolean click, boolean bwMode) throws AWTException,
+      RobotInterruptedException, IOException {
+    return scanOne(getImageData(filename), area, click, null, bwMode);
   }
 
   public Pixel scanOneBW(ImageData imageData, Rectangle area, boolean click) throws AWTException,
@@ -783,13 +793,6 @@ public class BaseScreenScanner {
   }
 
   // Pixel pixel = _matcher.findMatch(fbID.toBufferedImage(), fbAREA.toBufferedImage(), null);
-  public void reset() {
-    _optimized = false;
-    final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    _tl = new Pixel(0, 0);
-    _br = new Pixel(screenSize.width - 3, screenSize.height - 3);
-
-  }
 
   public void handleFBMessages(boolean close) throws AWTException, RobotInterruptedException, IOException {
     // FB messages
@@ -809,6 +812,10 @@ public class BaseScreenScanner {
         _mouse.delay(200);
       }
     } while (found);
+  }
+
+  public Pixel getSafePoint() {
+    return _safePoint;
   }
 
 }
