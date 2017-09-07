@@ -41,6 +41,13 @@ public class BaseScreenScanner {
   protected boolean _optimized = false;
   protected boolean _debugMode = false;
 
+  public Rectangle _fullArea = null;
+
+  public Rectangle _fbArea;
+
+  public Pixel _safePoint;
+  public Pixel _parkingPoint;
+
   protected Map<String, ImageData> _imageDataCache;
   protected Map<String, BufferedImage> _imageBWCache;
 
@@ -63,6 +70,29 @@ public class BaseScreenScanner {
     _tl = new Pixel(0, 0);
     _br = new Pixel(screenSize.width - 3, screenSize.height - 3);
 
+    _fullArea = new Rectangle(_tl.x, _tl.y, getGameWidth(), getGameHeight());
+    _parkingPoint = new Pixel(_br.x + 2, _tl.x + getGameHeight() / 2);
+    _safePoint = new Pixel(_parkingPoint);
+
+    _fbArea = new Rectangle(_fullArea);
+    _fbArea.x += _fbArea.width / 2;
+    _fbArea.width = _fbArea.width / 2;
+    _fbArea.y += _fbArea.height / 2;
+    _fbArea.height = _fbArea.height / 2;
+
+  }
+  
+  protected void setKeyAreas() throws IOException, AWTException, RobotInterruptedException {
+    setOptimized(true);
+    _fullArea = new Rectangle(_tl.x, _tl.y, getGameWidth(), getGameHeight());
+    _parkingPoint = new Pixel(_br.x + 2, _tl.x + getGameHeight() / 2);
+    _safePoint = new Pixel(_parkingPoint);
+
+    _fbArea = new Rectangle(_fullArea);
+    _fbArea.x += _fbArea.width / 2;
+    _fbArea.width = _fbArea.width / 2;
+    _fbArea.y += _fbArea.height / 2;
+    _fbArea.height = _fbArea.height / 2;
   }
 
   public Pixel getBottomRight() {
@@ -516,8 +546,8 @@ public class BaseScreenScanner {
    * @throws AWTException
    * @throws RobotInterruptedException
    */
-  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode, boolean convertImage)
-      throws AWTException, RobotInterruptedException {
+  public Pixel scanOneFast(ImageData imageData, Rectangle area, boolean click, Color colorToBypass, boolean bwMode,
+      boolean convertImage) throws AWTException, RobotInterruptedException {
 
     if (imageData == null)
       return null;
@@ -554,7 +584,7 @@ public class BaseScreenScanner {
     BufferedImage image = imageData.getImage();
     if (convertImage)
       image = convertToBW(image);
-    
+
     // The real deal
     Pixel pixel = _comparator.findImage(image, screen, colorToBypass);
 
@@ -570,8 +600,8 @@ public class BaseScreenScanner {
     return pixel;
   }
 
-  public Pixel scanOneFast(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode, boolean convertImage)
-      throws AWTException, RobotInterruptedException, IOException {
+  public Pixel scanOneFast(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode,
+      boolean convertImage) throws AWTException, RobotInterruptedException, IOException {
     return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode, convertImage);
   }
 
@@ -579,7 +609,6 @@ public class BaseScreenScanner {
       throws AWTException, RobotInterruptedException, IOException {
     return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode, false);
   }
-  
 
   public TemplateMatcher getMatcher() {
     return _matcher;
@@ -724,7 +753,8 @@ public class BaseScreenScanner {
       fb.saveAsBMP("C:/work/haha2.bmp");
       System.err.println("done");
 
-      Pixel p = scanner.scanOneFast("C:\\prj\\repos\\Mickey2\\images\\journey.bmp", null, false, Color.RED, true, false);
+      Pixel p = scanner
+          .scanOneFast("C:\\prj\\repos\\Mickey2\\images\\journey.bmp", null, false, Color.RED, true, false);
       System.err.println(p);
     } catch (IOException e) {
       // TODO Auto-generated catch block
@@ -761,5 +791,24 @@ public class BaseScreenScanner {
 
   }
 
+  public void handleFBMessages(boolean close) throws AWTException, RobotInterruptedException, IOException {
+    // FB messages
+    // writeAreaTS(_fbArea, "fbarea.bmp");
+    boolean found = false;
+    do {
+      Pixel p = scanOneFast("lib/fbMessageBlue.bmp", _fbArea, false);
+      if (p == null)
+        p = scanOneFast("lib/fbMessageWhite.bmp", _fbArea, false);
+
+      found = p != null;
+      if (found) {
+        if (close)
+          _mouse.click(p.x + 29, p.y + 12);
+        else
+          _mouse.click(p.x - 80, p.y);
+        _mouse.delay(200);
+      }
+    } while (found);
+  }
 
 }
