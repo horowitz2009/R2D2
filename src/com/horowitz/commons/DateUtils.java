@@ -56,7 +56,7 @@ public class DateUtils {
     if (mm > 0) {
       res = res + (mm + "m ");
     }
-    if (showSeconds || ss != 0 || res.trim().isEmpty())
+    if (showSeconds || res.trim().isEmpty())
       res = res + (ss + "s");
 
     return res;
