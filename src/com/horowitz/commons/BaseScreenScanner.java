@@ -610,6 +610,19 @@ public class BaseScreenScanner {
     return pixel;
   }
 
+  public Pixel findOneFast(BufferedImage image, BufferedImage screen, Color colorToBypass, boolean bwMode,
+      boolean convertImage) throws AWTException {
+    
+    if (colorToBypass == null)
+      colorToBypass = Color.RED;
+    
+    if (convertImage) {
+      image = convertToBW(image);
+      screen = convertToBW(screen);
+    }
+    return _comparator.findImage(image, screen, colorToBypass);
+  }
+  
   public Pixel scanOneFast(String filename, Rectangle area, boolean click, Color colorToBypass, boolean bwMode,
       boolean convertImage) throws AWTException, RobotInterruptedException, IOException {
     return scanOneFast(getImageData(filename), area, click, colorToBypass, bwMode, convertImage);
