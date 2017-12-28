@@ -77,7 +77,7 @@ public class BaseScreenScanner {
     _br = new Pixel(screenSize.width - 3, screenSize.height - 3);
 
     _fullArea = new Rectangle(_tl.x, _tl.y, getGameWidth(), getGameHeight());
-    _parkingPoint = new Pixel(_br.x + 2, _tl.x + getGameHeight() / 2);
+    _parkingPoint = new Pixel(_br.x + 2, _tl.y + getGameHeight() / 2);
     _safePoint = new Pixel(_parkingPoint);
 
     _fbArea = new Rectangle(_fullArea);
@@ -90,7 +90,7 @@ public class BaseScreenScanner {
   protected void setKeyAreas() throws IOException, AWTException, RobotInterruptedException {
     setOptimized(true);
     _fullArea = new Rectangle(_tl.x, _tl.y, getGameWidth(), getGameHeight());
-    _parkingPoint = new Pixel(_br.x + 2, _tl.x + getGameHeight() / 2);
+    _parkingPoint = new Pixel(_br.x + 2, _tl.y + getGameHeight() / 2);
     _safePoint = new Pixel(_parkingPoint);
 
     _fbArea = new Rectangle(_fullArea);
