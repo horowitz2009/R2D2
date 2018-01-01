@@ -134,32 +134,6 @@ public class GameLocator {
     return null;
   }
 
-  public Pixel locateImageCoordsOLD(ImageData imageData, Rectangle[] area) throws AWTException, IOException,
-      RobotInterruptedException {
-
-    final Robot robot = new Robot();
-    final BufferedImage image = imageData.getImage();
-    Pixel[] mask = imageData.getMask();
-
-    BufferedImage screen;
-    int turn = 0;
-    Pixel resultPixel = null;
-    while (turn < area.length) {
-      screen = robot.createScreenCapture(area[turn]);
-      List<Pixel> foundEdges = findEdge(image, screen, _comparator, null, mask);
-      if (foundEdges.size() >= 1) {
-        // found
-        int y = area[turn].y;
-        int x = area[turn].x;
-        resultPixel = new Pixel(foundEdges.get(0).x + x + imageData.get_xOff(), foundEdges.get(0).y + y
-            + imageData.get_yOff());
-        break;
-      }
-      turn++;
-    }
-    return resultPixel;
-  }
-
   public boolean isOptimized() {
     return _fullyOptimized && _br != null && _tl != null;
   }

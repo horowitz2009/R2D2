@@ -25,6 +25,7 @@ package com.horowitz.commons;
  */
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -273,7 +274,66 @@ public class SimilarityImageComparator implements ImageComparator {
     }
     return true;
   }
+  
+  public boolean compareNew(BufferedImage image1, BufferedImage image2) {
+    if ((image1.getWidth() != image2.getWidth()) || (image1.getHeight() != image2.getHeight())) {
+      return (false);
+    }
+    int countErrors = 0;
 
+    // count = image1.getWidth() * image1.getHeight();
+    for (int x = 0; x < image1.getWidth(); x++) {
+      for (int y = 0; y < image1.getHeight(); y++) {
+        final int rgb1 = image1.getRGB(x, y);
+        final int rgb2 = image2.getRGB(x, y);
+        
+        int diff = Math.abs(((rgb1 >> 16) & 0xFF) - ((rgb2 >> 16) & 0xFF))
+            * Math.abs(((rgb1 >> 16) & 0xFF) - ((rgb2 >> 16) & 0xFF))
+            + Math.abs(((rgb1 >> 8) & 0xFF) - ((rgb2 >> 8) & 0xFF))
+            * Math.abs(((rgb1 >> 8) & 0xFF) - ((rgb2 >> 8) & 0xFF))
+            + Math.abs(((rgb1 >> 0) & 0xFF) - ((rgb2 >> 0) & 0xFF))
+            * Math.abs(((rgb1 >> 0) & 0xFF) - ((rgb2 >> 0) & 0xFF));
+        // System.err.print(diff < 900 ? 1 : 0);
+        // sum += (diff < 900 ? 1 : 0);
+        if (diff > precision)
+          countErrors++;
+
+        if (countErrors > errors) {
+          return false;
+        }
+        // count++;
+
+      }
+    }
+    return true;
+  }
+
+  public boolean compareBW(BufferedImage image1, BufferedImage image2) {
+    int countErrors = 0;
+    
+    // count = image1.getWidth() * image1.getHeight();
+    for (int x = 0; x < image1.getWidth(); x++) {
+      for (int y = 0; y < image1.getHeight(); y++) {
+        final int rgb1 = image1.getRGB(x, y);
+        final int rgb2 = image2.getRGB(x, y);
+        
+        int diff = Math.abs(((rgb1 >> 0) & 0xFF) - ((rgb2 >> 0) & 0xFF))
+            * Math.abs(((rgb1 >> 0) & 0xFF) - ((rgb2 >> 0) & 0xFF));
+        // System.err.print(diff < 900 ? 1 : 0);
+        // sum += (diff < 900 ? 1 : 0);
+        if (diff > precision)
+          countErrors++;
+        
+        if (countErrors > errors) {
+          return false;
+        }
+        // count++;
+        
+      }
+    }
+    return true;
+  }
+  
   /*
    * (non-Javadoc)
    * 
@@ -420,7 +480,6 @@ public class SimilarityImageComparator implements ImageComparator {
    * 
    * @see com.horowitz.mickey.IImageComparator#findPoint(java.awt.image.BufferedImage , com.horowitz.mickey.Pixel[], java.awt.Color[])
    */
-  @Override
   public Point findPoint(BufferedImage image, Pixel[] mask, Color[] colors) {
     Point result = null;
     for (int x = 0; x < (image.getWidth() - MAX_X); x++) {
@@ -443,6 +502,8 @@ public class SimilarityImageComparator implements ImageComparator {
 
   @Override
   public Pixel findImage(BufferedImage image, BufferedImage screen) {
+    image = normalizeRGB(image);
+    screen = normalizeRGB(screen);
     for (int i = 0; i <= (screen.getWidth() - image.getWidth()); i++) {
       for (int j = 0; j <= (screen.getHeight() - image.getHeight()); j++) {
         final BufferedImage subimage = screen.getSubimage(i, j, image.getWidth(), image.getHeight());
@@ -455,11 +516,43 @@ public class SimilarityImageComparator implements ImageComparator {
     return null;
   }
 
+  public Pixel findImageNew(BufferedImage image, BufferedImage screen) {
+    image = normalizeRGB(image);
+    screen = normalizeRGB(screen);
+
+    for (int i = 0; i <= (screen.getWidth() - image.getWidth()); i++) {
+      for (int j = 0; j <= (screen.getHeight() - image.getHeight()); j++) {
+        final BufferedImage subimage = screen.getSubimage(i, j, image.getWidth(), image.getHeight());
+        if (compareNew(image, subimage)) {
+          Pixel p = new Pixel(i, j);
+          return p;
+        }
+      }
+    }
+    return null;
+  }
+  
+  public Pixel findImageBW(BufferedImage image, BufferedImage screen) {
+    for (int i = 0; i <= (screen.getWidth() - image.getWidth()); i++) {
+      for (int j = 0; j <= (screen.getHeight() - image.getHeight()); j++) {
+        final BufferedImage subimage = screen.getSubimage(i, j, image.getWidth(), image.getHeight());
+        if (compareBW(image, subimage)) {
+          Pixel p = new Pixel(i, j);
+          return p;
+        }
+      }
+    }
+    return null;
+  }
+  
   @Override
   public Pixel findImage(BufferedImage image, BufferedImage screen, Color colorToBypass) {
     if (colorToBypass == null) 
       return findImage(image, screen);
     
+    image = normalizeRGB(image);
+    screen = normalizeRGB(screen);
+
     for (int i = 0; i <= (screen.getWidth() - image.getWidth()); i++) {
       for (int j = 0; j <= (screen.getHeight() - image.getHeight()); j++) {
         final BufferedImage subimage = screen.getSubimage(i, j, image.getWidth(), image.getHeight());
@@ -501,5 +594,21 @@ public class SimilarityImageComparator implements ImageComparator {
   public void setErrors(int errors) {
     this.errors = errors;
   }
+  
+  public BufferedImage normalizeRGB(BufferedImage src) {
+    if (src.getType() != BufferedImage.TYPE_INT_RGB) {
+      return toRGB(src);
+    }
+    return src;
+  }
+  
+  public BufferedImage toRGB(BufferedImage src) {
+    BufferedImage b = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_RGB);
+    Graphics g = b.createGraphics();
+    g.drawImage(src, 0, 0, null);
+    g.dispose();
+    return b;
+  }
+
 
 }

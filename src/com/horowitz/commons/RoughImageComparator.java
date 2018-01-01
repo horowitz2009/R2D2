@@ -335,7 +335,6 @@ public class RoughImageComparator implements ImageComparator {
    * 
    * @see com.horowitz.mickey.IImageComparator#findPoint(java.awt.image.BufferedImage , com.horowitz.mickey.Pixel[], java.awt.Color[])
    */
-  @Override
   public Point findPoint(BufferedImage image, Pixel[] mask, Color[] colors) {
     Point result = null;
     for (int x = 0; x < (image.getWidth() - MAX_X); x++) {

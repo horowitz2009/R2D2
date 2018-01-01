@@ -22,6 +22,14 @@ public interface ImageComparator {
 
   public boolean compareOld(BufferedImage image1, BufferedImage image2, Pixel[] indices);
 
+  /**
+   * @deprecated
+   * @param image1
+   * @param image2
+   * @param colors
+   * @param indices
+   * @return
+   */
   public boolean compare(BufferedImage image1, BufferedImage image2, Map<Integer, Color[]> colors, Pixel[] indices);
 
   public List<Pixel> findSimilarities(BufferedImage image1, BufferedImage image2, Pixel[] indices);
@@ -30,7 +38,6 @@ public interface ImageComparator {
 
   public boolean compareInt(BufferedImage image, Pixel[] mask, Color[] colors);
 
-  public Point findPoint(BufferedImage image, Pixel[] mask, Color[] colors);
 
   public Pixel findImage(BufferedImage image, BufferedImage area);
   

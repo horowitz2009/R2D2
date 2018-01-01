@@ -26,27 +26,39 @@ public class MyImageIO {
 
   }
 
-  public static void writeImageTS(BufferedImage image, String filenamePrefix) {
-	SimpleDateFormat sdf = new SimpleDateFormat("MM-dd  HH-mm-ss-SSS");
-	String date = sdf.format(Calendar.getInstance().getTime());
-	String filename2 = filenamePrefix + " " + date + ".jpg";
-	writeImage(image, filename2);
-  }
-  
-  public static void writeImage(BufferedImage image, String filename) {
+  public static void writeImageTS(BufferedImage image, String filename) {
+    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd  HH-mm-ss-SSS");
+    String date = sdf.format(Calendar.getInstance().getTime());
 
-    try {
-      int ind = filename.lastIndexOf("/");
-      if (ind > 0) {
-        String path = filename.substring(0, ind);
-        File f = new File(path);
-        f.mkdirs();
-      }
-      File file = new File(filename);
-      write(image, filename.substring(filename.length() - 3).toUpperCase(), file);
-    } catch (IOException e) {
-      e.printStackTrace();
+    int ind = filename.indexOf(".");
+    String ext = ".jpg";
+    if (ind > 0) {
+      ext = filename.substring(ind);
+      filename = filename.substring(0, ind);
     }
+    String filename2 = filename + " " + date + ext;
+    writeImage(image, filename2);
+  }
+
+  public static void writeImage(final BufferedImage image, final String filename) {
+//    new Thread(new Runnable() {
+//      public void run() {
+        try {
+          int ind = filename.lastIndexOf("/");
+          if (ind > 0) {
+            String path = filename.substring(0, ind);
+            File f = new File(path);
+            f.mkdirs();
+          }
+
+          File file = new File(filename);
+          write(image, filename.substring(filename.length() - 3).toUpperCase(), file);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+
+//      }
+//    }).start();
   }
 
   public static void writeScreen(String filename) {
@@ -68,8 +80,8 @@ public class MyImageIO {
     int ind = filename.indexOf(".");
     String ext = ".jpg";
     if (ind > 0) {
-    	ext = filename.substring(ind);
-    	filename = filename.substring(0, ind);
+      ext = filename.substring(ind);
+      filename = filename.substring(0, ind);
     }
     String filename2 = filename + " " + date + ext;
 
