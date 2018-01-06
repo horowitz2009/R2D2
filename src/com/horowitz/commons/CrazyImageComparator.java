@@ -29,6 +29,7 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
 import Catalano.Imaging.FastBitmap;
+import Catalano.Imaging.Filters.Threshold;
 
 /**
  * Compares two images roughly (i.e. not all of the pixel colors should match).
@@ -38,6 +39,9 @@ import Catalano.Imaging.FastBitmap;
 public class CrazyImageComparator {
   private double precision;
   private double threshold;
+  private boolean bw = false;
+  private int maxBWErrors = 5;
+  private Color defaultColorToBypass = null;
 
   /**
    * Creates a comparator with <code>roughness</code> allowed roughness.
@@ -56,21 +60,38 @@ public class CrazyImageComparator {
     this(0.97, 20);
   }
 
-  public boolean compare(BufferedImage image1, BufferedImage image2) {
-    return compare(image1, image2, (int) ((image1.getWidth() * image1.getHeight()) * (1 - threshold)), precision);
+  public static final Threshold THRESHOLD = new Threshold(100);
+
+  public BufferedImage toBW(BufferedImage src) {
+    FastBitmap fb = new FastBitmap(src);
+    if (!fb.isGrayscale())
+      fb.toGrayscale();
+    THRESHOLD.applyInPlace(fb);
+    return fb.toBufferedImage();
   }
-  
-  public boolean compareBW(BufferedImage image1, BufferedImage image2) {
+
+  public boolean compare(BufferedImage image1, BufferedImage image2) {
+    if (bw) {
+      image1 = toBW(image1);
+      image2 = toBW(image2);
+      return compareBW(image1, image2);
+    }
+
     return compare(image1, image2, (int) ((image1.getWidth() * image1.getHeight()) * (1 - threshold)), precision);
   }
 
-  private boolean compareBW(BufferedImage image1, BufferedImage image2, int maxErrors, double allowedDistance) {
+  public boolean compareBW(BufferedImage image1, BufferedImage image2) {
+    return compareBW2(image1, image2, (int) ((image1.getWidth() * image1.getHeight()) * (1 - threshold)), precision);
+  }
+
+  private boolean compareBWOLD(BufferedImage image1, BufferedImage image2, int maxErrors, double allowedDistance) {
     if ((image1.getWidth() != image2.getWidth()) || (image1.getHeight() != image2.getHeight())) {
+      System.err.println("SIZE DIFFERS\n" + image1.getWidth() + " vs " + image2.getWidth() + "\n" + image1.getHeight()
+          + " vs " + image2.getHeight());
       return false;
     }
 
     int errors = 0;
-    maxErrors = 5;
     for (int x = 0; x < image1.getWidth(); x++) {
       for (int y = 0; y < image1.getHeight(); y++) {
         int rgb1 = image1.getRGB(x, y);
@@ -78,17 +99,18 @@ public class CrazyImageComparator {
 
         if (rgb1 != -1 && rgb1 != rgb2)
           errors++;
-//        int diff = Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 & 0xFF)) * Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 & 0xFF))
-//                 + Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF)) * Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF)) 
-//                 + Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF)) * Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF));
+        // int diff = Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 & 0xFF)) * Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 &
+        // 0xFF))
+        // + Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF)) * Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF))
+        // + Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF)) * Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF));
 
-         int r1 = rgb1 >> 16 & 0xFF;// pixels[x*strideX+y*strideY] >> 16 & 0xFF;
-         int g1 = rgb1 >> 8 & 0xFF;
-         int b1 = rgb1 & 0xFF; //rgb1 >> 0 & 0xFF;
-        
-         int r2 = rgb2 >> 16 & 0xFF;// pixels[x*strideX+y*strideY] >> 16 & 0xFF;
-         int g2 = rgb2 >> 8 & 0xFF;
-         int b2 = rgb2 & 0xFF; //rgb1 >> 0 & 0xFF;
+        // int r1 = rgb1 >> 16 & 0xFF;// pixels[x*strideX+y*strideY] >> 16 & 0xFF;
+        // int g1 = rgb1 >> 8 & 0xFF;
+        // int b1 = rgb1 & 0xFF; //rgb1 >> 0 & 0xFF;
+        //
+        // int r2 = rgb2 >> 16 & 0xFF;// pixels[x*strideX+y*strideY] >> 16 & 0xFF;
+        // int g2 = rgb2 >> 8 & 0xFF;
+        // int b2 = rgb2 & 0xFF; //rgb1 >> 0 & 0xFF;
         //
         // int r11 = fb1.getRed(y, x);
         // int g11 = fb1.getGreen(y, x);
@@ -102,8 +124,8 @@ public class CrazyImageComparator {
         // if (r2 != r22 || g2 != g22 || b2 != b22) {
         // System.err.println("WHAAAAT?");
         // }
-//          System.err.println(r1 + " " + g1 + " " + b1);
-//          System.err.println(r2 + " " + g2 + " " + b2);
+        // System.err.println(r1 + " " + g1 + " " + b1);
+        // System.err.println(r2 + " " + g2 + " " + b2);
         // int d1 = (r1 - r2);
         // d1 = d1 * d1;
         // d1 = Math.abs(d1);
@@ -133,9 +155,10 @@ public class CrazyImageComparator {
         // + Math.abs((((rgb1 >> 0) & 0xFF) - ((rgb2 >> 0) & 0xFF)) * (((rgb1 >> 0) & 0xFF) - ((rgb2 >> 0) & 0xFF)));
 
         // if (Math.sqrt(diff) > allowedDistance)
-//        if (Math.sqrt(diff) > allowedDistance)
-//          errors++;
-        if (errors > maxErrors)
+        // if (Math.sqrt(diff) > allowedDistance)
+        // errors++;
+
+        if (errors > maxBWErrors)
           // enough
           return false;
 
@@ -146,15 +169,68 @@ public class CrazyImageComparator {
     return (true);
   }
 
-  private boolean compare(BufferedImage image1, BufferedImage image2, int maxErrors, double allowedDistance) {
-    if(image1.getType() == BufferedImage.TYPE_BYTE_GRAY && image2.getType() == BufferedImage.TYPE_BYTE_GRAY) {
-      return compareBW(image1, image2, maxErrors, allowedDistance);
-    }
-    
+  private boolean compareBW2(BufferedImage image1, BufferedImage image2, int maxErrors, double allowedDistance) {
     if ((image1.getWidth() != image2.getWidth()) || (image1.getHeight() != image2.getHeight())) {
+      System.err.println("SIZE DIFFERS\n" + image1.getWidth() + " vs " + image2.getWidth() + "\n" + image1.getHeight()
+          + " vs " + image2.getHeight());
       return false;
     }
-    
+    int errors = 0;
+    int good = 0;
+    int tot = image1.getHeight() * image1.getWidth();
+    for (int x = 0; x < image1.getWidth(); x++) {
+      for (int y = 0; y < image1.getHeight(); y++) {
+        int rgb1 = image1.getRGB(x, y);
+        int rgb2 = image2.getRGB(x, y);
+
+        if (rgb1 == rgb2)
+          good++;
+
+        if (rgb1 != rgb2)
+          errors++;
+        // early reject option
+        float check = good + errors;
+        if (check > (tot * .33)) {
+          check = good / check;
+          // System.err.println("check: " + check);
+
+          if (check - threshold < 0)
+            return false;
+        }
+        // if ((good + errors) > (tot * 0.33) && (good / (good + errors) < threshold))
+        // return false;
+      }
+    }
+    // MyImageIO.writeImageTS(image1, "micro1.png");
+    // MyImageIO.writeImageTS(image2, "micro2 " + good + "-" + errors + ".png");
+
+    // System.err.println("hmmmmmmmmmmmmmmm " + good + "-" + errors + "->" + (good / (good + errors)) + " < " +
+    // threshold);
+
+    float check = good + errors;
+    check = good / check;
+    // System.err.println("check: " + check);
+
+    if (check - threshold < 0)
+      return false;
+
+    // System.err.println("BINGOOOOOOOOOOOO " + good + "-" + errors + "->" + check + " < " + threshold);
+    return true;
+  }
+
+  private boolean compare(BufferedImage image1, BufferedImage image2, int maxErrors, double allowedDistance) {
+    if (image1.getType() == BufferedImage.TYPE_BYTE_GRAY && image2.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+      if (bw)
+        return compareBW2(image1, image2, maxErrors, allowedDistance);
+      else
+        return compareBWOLD(image1, image2, maxErrors, allowedDistance);
+    }
+
+    if ((image1.getWidth() != image2.getWidth()) || (image1.getHeight() != image2.getHeight())) {
+      System.err.println("SIZE DIFFERS\n" + image1.getWidth() + " vs " + image2.getWidth() + "\n" + image1.getHeight()
+          + " vs " + image2.getHeight());
+      return false;
+    }
 
     // FastBitmap fb1 = new FastBitmap(image1);
     // FastBitmap fb2 = new FastBitmap(image2);
@@ -166,9 +242,10 @@ public class CrazyImageComparator {
         int rgb1 = image1.getRGB(x, y);
         int rgb2 = image2.getRGB(x, y);
 
-        int diff = Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 & 0xFF)) * Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 & 0xFF))
-                 + Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF)) * Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF)) 
-                 + Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF)) * Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF));
+        int diff = Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 & 0xFF))
+            * Math.abs((rgb1 >> 16 & 0xFF) - (rgb2 >> 16 & 0xFF)) + Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF))
+            * Math.abs((rgb1 >> 8 & 0xFF) - (rgb2 >> 8 & 0xFF)) + Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF))
+            * Math.abs((rgb1 & 0xFF) - (rgb2 & 0xFF));
 
         // int r1 = rgb1 >> 16 & 0xFF;// pixels[x*strideX+y*strideY] >> 16 & 0xFF;
         // int g1 = rgb1 >> 8 & 0xFF;
@@ -370,10 +447,20 @@ public class CrazyImageComparator {
   }
 
   public Pixel findImage(BufferedImage image, BufferedImage screen) {
+    if (defaultColorToBypass != null)
+      return findImage(image, screen, defaultColorToBypass);
+
     int maxErrors;
-    if(image.getType() == BufferedImage.TYPE_BYTE_GRAY && screen.getType() == BufferedImage.TYPE_BYTE_GRAY) {
+    if (bw) {
+      if (image.getType() != BufferedImage.TYPE_BYTE_GRAY)
+        image = toBW(image);
+      if (screen.getType() != BufferedImage.TYPE_BYTE_GRAY)
+        screen = toBW(screen);
+
+    }
+    if (image.getType() == BufferedImage.TYPE_BYTE_GRAY && screen.getType() == BufferedImage.TYPE_BYTE_GRAY) {
       maxErrors = (int) ((image.getWidth() * image.getHeight()) * (1 - threshold));
-      //do not normalize for now
+      // do not normalize for now
     } else {
       maxErrors = (int) ((image.getWidth() * image.getHeight()) * (1 - threshold));
       image = normalizeRGB(image);
@@ -411,7 +498,9 @@ public class CrazyImageComparator {
 
   public Pixel findImage(BufferedImage image, BufferedImage screen, Color colorToBypass) {
     if (colorToBypass == null)
-      return findImage(image, screen);
+      colorToBypass = defaultColorToBypass;
+    if (colorToBypass == null)
+      colorToBypass = Color.red;
 
     image = normalizeRGB(image);
     screen = normalizeRGB(screen);
@@ -431,6 +520,8 @@ public class CrazyImageComparator {
   }
 
   public Pixel findImageQ(BufferedImage image, BufferedImage screen) {
+    if (defaultColorToBypass != null)
+      return findImageQ(image, screen, defaultColorToBypass);
 
     image = normalizeRGB(image);
     screen = normalizeRGB(screen);
@@ -449,7 +540,33 @@ public class CrazyImageComparator {
     return null;
   }
 
-  public Pixel findImageQQ(BufferedImage image, BufferedImage screen) {
+  public Pixel findImageQ(BufferedImage image, BufferedImage screen, Color colorToBypass) {
+    if (colorToBypass == null)
+      colorToBypass = defaultColorToBypass;
+    if (colorToBypass == null)
+      colorToBypass = Color.red;
+
+    image = normalizeRGB(image);
+    screen = normalizeRGB(screen);
+    int maxErrors = (int) ((image.getWidth() * image.getHeight()) * (1 - threshold));
+    for (int i = 0; i <= (screen.getWidth() - image.getWidth()); i++) {
+      for (int j = 0; j <= (screen.getHeight() - image.getHeight()); j++) {
+        final BufferedImage subimage = screen.getSubimage(i, j, image.getWidth(), image.getHeight());
+
+        if (compareQ(image, subimage, maxErrors, precision, colorToBypass)) {
+          Pixel p = new Pixel(i, j);
+          return p;
+        }
+      }
+    }
+    return null;
+  }
+
+  public Pixel findImageQQ(BufferedImage image, BufferedImage screen, Color colorToBypass) {
+    if (colorToBypass == null)
+      colorToBypass = defaultColorToBypass;
+    if (colorToBypass == null)
+      colorToBypass = Color.red;
 
     image = normalizeRGB(image);
     screen = normalizeRGB(screen);
@@ -467,7 +584,7 @@ public class CrazyImageComparator {
           for (int j = 0 + yOff; j <= h; j += m) {
 
             final BufferedImage subimage = screen.getSubimage(i, j, image.getWidth(), image.getHeight());
-            if (compareQ(image, subimage, maxErrors, precision)) {
+            if (compareQ(image, subimage, maxErrors, precision, colorToBypass)) {
               Pixel p = new Pixel(i, j);
               return p;
             }
@@ -492,6 +609,26 @@ public class CrazyImageComparator {
 
   public void setThreshold(double threshold) {
     this.threshold = threshold;
+  }
+
+  public void setBW(boolean b) {
+    this.bw = b;
+  }
+
+  public int getMaxBWErrors() {
+    return maxBWErrors;
+  }
+
+  public void setMaxBWErrors(int maxBWErrors) {
+    this.maxBWErrors = maxBWErrors;
+  }
+
+  public Color getDefaultColorToBypass() {
+    return defaultColorToBypass;
+  }
+
+  public void setDefaultColorToBypass(Color defaultColorToBypass) {
+    this.defaultColorToBypass = defaultColorToBypass;
   }
 
 }

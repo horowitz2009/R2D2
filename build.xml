@@ -2,7 +2,7 @@
 <project default="copy-jar" name="Create Jar for Horowitz Commons">
 	<!--<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
 -->
-	<property name="versionNumber" value="1.15" />
+	<property name="versionNumber" value="1.16" />
 
 	<property name="jarname" value="horowitz-commons-${versionNumber}.jar" description="" />
 
