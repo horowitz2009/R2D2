@@ -20,6 +20,7 @@ public class MouseRobot {
   private int _delayBetweenActions;
   private Point _position;
   private Point _lastMousePos;
+  private boolean pressed = false;
   private PropertyChangeSupport _support;
 
   private Robot getInstance() {
@@ -60,6 +61,7 @@ public class MouseRobot {
     robot.delay(_clickDelay);
     robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     robot.delay(_delayBetweenActions);
+    pressed = false;
   }
 
   public void click(Pixel p) {
@@ -81,6 +83,7 @@ public class MouseRobot {
     mouseMove(x1, y1);
     saveCurrentPosition();
     robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = true;
     delay(400);
     // checkUserMovement();
     int x = x1;
@@ -151,6 +154,7 @@ public class MouseRobot {
 
     delay(200);
     robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = false;
     saveCurrentPosition();
   }
   
@@ -160,6 +164,7 @@ public class MouseRobot {
 	  mouseMove(x1, y1);
 	  saveCurrentPosition();
 	  robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+	  pressed = true;
 	  delay(400);
 	  // checkUserMovement();
 	  int x = x1;
@@ -234,6 +239,7 @@ public class MouseRobot {
 	  }
 
 	  robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+	  pressed = false;
 	  saveCurrentPosition();
   }
 
@@ -243,6 +249,7 @@ public class MouseRobot {
     mouseMove(x1, y1);
     saveCurrentPosition();
     robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = true;
     delay(200);
     // checkUserMovement();
     int x = x1;
@@ -317,6 +324,7 @@ public class MouseRobot {
     }
     
     robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = false;
     saveCurrentPosition();
   }
   
@@ -377,6 +385,7 @@ public class MouseRobot {
     mouseMove(x1, y1);
     saveCurrentPosition();
     robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = true;
     delay(400);
     // checkUserMovement();
     int x = x1;
@@ -419,6 +428,7 @@ public class MouseRobot {
     }
     delay(200);
     robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = false;
     saveCurrentPosition();
   }
 
@@ -436,6 +446,7 @@ public class MouseRobot {
     robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
     robot.delay(_clickDelay);
     robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = false;
     robot.delay(_delayBetweenActions);
   }
 
@@ -444,6 +455,7 @@ public class MouseRobot {
     robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
     robot.delay(_clickDelay);
     robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+    pressed = false;
     robot.delay(_delayBetweenActions);
   }
 
@@ -493,8 +505,11 @@ public class MouseRobot {
   public void checkUserMovement() throws RobotInterruptedException {
     Point currentPos = MouseInfo.getPointerInfo().getLocation();
     if (Math.abs(_lastMousePos.x - currentPos.x) > 4 || Math.abs(_lastMousePos.y - currentPos.y) > 4) {
-
-      getInstance().mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    	
+    	if (pressed) {
+          getInstance().mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+          pressed = false;
+    	}
       // mouseMove(_lastMousePos.x, _lastMousePos.y);
       saveCurrentPosition();
       throw new RobotInterruptedException();
@@ -545,8 +560,10 @@ public class MouseRobot {
   public void hold(int msec) {
     Robot robot = getInstance();
     robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = true;
     robot.delay(msec);
     robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    pressed = false;
     robot.delay(_delayBetweenActions);
   }
 
