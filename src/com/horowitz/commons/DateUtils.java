@@ -3,11 +3,13 @@ package com.horowitz.commons;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -74,8 +76,18 @@ public class DateUtils {
   }
   
   public static String formatDateForFileMS(long time) {
-    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH mm ss.SSS");
+	  SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH mm ss.SSS");
+	  return df.format(time);
+  }
+  
+  public static String formatDateToISO(long time) {
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     return df.format(time);
+  }
+  
+  public static Date parseFromISO(String isoDate) throws ParseException {
+	  SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	  return df.parse(isoDate);
   }
   
   public static String formatDateForFile2(long time) {
