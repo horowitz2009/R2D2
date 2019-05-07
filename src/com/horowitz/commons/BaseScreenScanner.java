@@ -261,13 +261,38 @@ public class BaseScreenScanner {
     return scanMany(imageData, screen, click);
   }
 
-  public List<Pixel> scanManyFast(String filename, BufferedImage screen, boolean click)
+  public List<Pixel> scanManyFast(String filename, Rectangle area, boolean click)
       throws RobotInterruptedException, IOException, AWTException {
 
     ImageData imageData = getImageData(filename);
     if (imageData == null)
       return new ArrayList<Pixel>(0);
+    
+    if (area == null) {
+        area = imageData.getDefaultArea();
+      }
+
+      if (area == null) {
+        // not recommended
+        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+        area = new Rectangle(0, 0, d.width - 1, d.height - 1);
+      }
+
+      BufferedImage screen = new Robot().createScreenCapture(area);
+
+    
+    
+    
     return scanMany(imageData, screen, click);
+  }
+  
+  public List<Pixel> scanManyFast(String filename, BufferedImage screen, boolean click)
+		  throws RobotInterruptedException, IOException, AWTException {
+	  
+	  ImageData imageData = getImageData(filename);
+	  if (imageData == null)
+		  return new ArrayList<Pixel>(0);
+	  return scanMany(imageData, screen, click);
   }
 
   public List<Pixel> scanMany(ImageData imageData, BufferedImage screen, boolean click)
@@ -277,7 +302,11 @@ public class BaseScreenScanner {
     Rectangle area = imageData.getDefaultArea();
     if (screen == null)
       screen = new Robot().createScreenCapture(area);
-    List<Pixel> matches = _matcher.findMatches(imageData.getImage(), screen, imageData.getColorToBypass());
+    
+    Color colorToBypass = imageData.getColorToBypass();
+    if (colorToBypass == null)
+    	colorToBypass = Color.red;
+	List<Pixel> matches = _matcher.findMatches(imageData.getImage(), screen, colorToBypass);
     if (!matches.isEmpty()) {
       Collections.sort(matches);
       Collections.reverse(matches);
@@ -298,12 +327,12 @@ public class BaseScreenScanner {
         }
       }
 
-      for (Pixel pixel : matches) {
-        pixel.x += (area.x + imageData.get_xOff());
-        pixel.y += (area.y + imageData.get_yOff());
-        if (click)
-          _mouse.click(pixel.x, pixel.y);
-      }
+//      for (Pixel pixel : matches) {
+//        pixel.x += (area.x + imageData.get_xOff());
+//        pixel.y += (area.y + imageData.get_yOff());
+//        if (click)
+//          _mouse.click(pixel.x, pixel.y);
+//      }
     }
     return matches;
   }
@@ -908,6 +937,10 @@ public class BaseScreenScanner {
   public Pixel findMatch(BufferedImage template, BufferedImage image, Color colorToBypass) {
     return _matcher.findMatch(template, image, colorToBypass);
   }
+  
+//  public List<Pixel> findMatches(BufferedImage template, BufferedImage image, Color colorToBypass) {
+//return  _matcher.findMatches(imageData.getImage(), screen, imageData.getColorToBypass());
+  
 
   // Pixel pixel = _matcher.findMatch(fbID.toBufferedImage(), fbAREA.toBufferedImage(), null);
 
@@ -934,5 +967,9 @@ public class BaseScreenScanner {
   public Pixel getSafePoint() {
     return _safePoint;
   }
+
+	public List<Pixel> findMatches(BufferedImage template, BufferedImage image, Color colorToBypass) {
+		return _matcher.findMatches(template, image, colorToBypass);
+	}
 
 }

@@ -50,7 +50,11 @@ public class Service {
 
 		File f = new File(fname);
 		if (f.exists()) {
-			return f.renameTo(new File(fname + _inprogress));
+			File newName = new File(fname + _inprogress);
+			if (newName.exists()) {
+				newName = new File(fname + System.currentTimeMillis() + _inprogress);
+			}
+			return f.renameTo(newName);
 		}
 		return false;
 	}

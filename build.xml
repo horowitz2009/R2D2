@@ -2,7 +2,7 @@
 <project default="copy-jar" name="Create Jar for Horowitz Commons">
 	<!--<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
 -->
-	<property name="versionNumber" value="1.18" />
+	<property name="versionNumber" value="1.19" />
 
 	<property name="jarname" value="horowitz-commons-${versionNumber}.jar" description="" />
 
@@ -35,14 +35,14 @@
 		<mkdir dir="${dropbox}/${dir1}" />
 		<copy todir="${dropbox}/${dir1}" file="lib/${jarname}" />
 
-		<property name="dir2" value="TennisMania/lib" />
+<!--		<property name="dir2" value="TennisMania/lib" />
 		<mkdir dir="${dropbox}/${dir2}" />
 		<copy todir="${dropbox}/${dir2}" file="lib/${jarname}" />
 		
 		<property name="dir3" value="office2/lib" />
 		<mkdir dir="${dropbox}/${dir3}" />
 		<copy todir="${dropbox}/${dir3}" file="lib/${jarname}" />
-
+-->
 		<property name="dir4" value="office/lib" />
 		<mkdir dir="${dropbox}/${dir4}" />
 		<copy todir="${dropbox}/${dir4}" file="lib/${jarname}" />
