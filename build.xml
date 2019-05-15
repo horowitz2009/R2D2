@@ -46,6 +46,10 @@
 		<property name="dir4" value="office/lib" />
 		<mkdir dir="${dropbox}/${dir4}" />
 		<copy todir="${dropbox}/${dir4}" file="lib/${jarname}" />
+
+		<property name="dir5" value="ziggy/lib" />
+		<mkdir dir="${dropbox}/${dir5}" />
+		<copy todir="${dropbox}/${dir5}" file="lib/${jarname}" />
 	</target>
 	
 	<target name="copy">
