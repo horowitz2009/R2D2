@@ -158,6 +158,68 @@ public class MouseRobot {
     saveCurrentPosition();
   }
   
+  public void dragWGL(int x1, int y1, int x2, int y2, int maxStep, int extraMove, int speed, int extraDelay)
+		  throws RobotInterruptedException {
+	  Robot robot = getInstance();
+	  mouseMove(x1, y1);
+	  saveCurrentPosition();
+	  robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+	  pressed = true;
+	  delay(400);
+	  // checkUserMovement();
+	  int x = x1;
+	  int y = y1;
+	  int step = maxStep;
+	  
+	  if (x1 != x2) {// move horizontally with high precision
+		  int a = x2 - x1;
+		  if (extraMove > 0) {
+			  a += (a > 0 ? extraMove : -extraMove);
+		  }
+		  int d = Math.abs(a);
+		  step = d <= maxStep ? d : maxStep;
+		  double turns = d / step;
+		  for (int i = 0; i < turns; i++) {
+			  x = x + (a > 0 ? step : -step);
+			  mouseMove(x, y);
+			  delay(speed);
+		  }
+		  int rest = d % step;
+		  x = x + (a > 0 ? rest : -rest);
+		  mouseMove(x, y);
+		  delay(speed + 100);
+	  }
+	  
+	  if (y1 != y2) {// move vertically with high precision
+		  int b = y2 - y1;
+		  if (extraMove > 0) {
+			  b += (b > 0 ? extraMove : -extraMove);
+		  }
+		  int d = Math.abs(b);
+		  step = d <= maxStep ? d : maxStep;
+		  double turns = d / step;
+		  for (int i = 0; i < turns; i++) {
+			  y = y + (b > 0 ? step : -step);
+			  mouseMove(x, y);
+			  delay(speed);
+		  }
+		  int rest = d % step;
+		  y = y + (b > 0 ? rest : -rest);
+		  mouseMove(x, y);
+		  delay(speed + 100);
+
+		  
+	  }
+	  
+	  delay(200);
+	  if (extraDelay > 0) {
+		  delay(extraDelay);
+	  }
+	  robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+	  pressed = false;
+	  saveCurrentPosition();
+  }
+  
   public void drag4(int x1, int y1, int x2, int y2, boolean extraMove, boolean simBreaks)
 		  throws RobotInterruptedException {
 	  Robot robot = getInstance();
